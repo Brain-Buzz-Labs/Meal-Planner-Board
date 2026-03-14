@@ -20,7 +20,7 @@ import {
   horizontalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
-import { Plus, ChevronLeft, ChevronRight, Inbox, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Cat, Inbox, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
 import { useListMeals, useListDays, useMoveMeal, Meal, MealType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -267,9 +267,7 @@ export default function Board() {
       {/* HEADER */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <Inbox className="text-white w-5 h-5" />
-          </div>
+          <Cat className="w-10 h-10 text-primary" />
           <h1 className="text-2xl font-bold text-foreground hidden sm:block">Cat Food</h1>
         </div>
 
