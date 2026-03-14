@@ -268,7 +268,7 @@ export default function Board() {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <Cat className="w-10 h-10 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground hidden sm:block">Menu Map</h1>
+          <h1 className="text-2xl font-bold text-foreground hidden sm:block">Cat Food</h1>
         </div>
 
         <div className="flex items-center gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm">
