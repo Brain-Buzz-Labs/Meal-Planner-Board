@@ -270,7 +270,7 @@ export default function Board() {
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
             <Inbox className="text-white w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground hidden sm:block">Menu Map</h1>
+          <h1 className="text-2xl font-bold text-foreground hidden sm:block">Cat Food</h1>
         </div>
 
         <div className="flex items-center gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm">
@@ -306,7 +306,6 @@ export default function Board() {
           </Button>
         </div>
       </header>
-
       {/* MAIN BOARD */}
       <main className="flex-1 overflow-hidden flex flex-col">
         <DndContext
@@ -433,7 +432,6 @@ export default function Board() {
           </DragOverlay>
         </DndContext>
       </main>
-
       {/* DIALOGS */}
       <MealFormDialog
         isOpen={isDialogOpen}
