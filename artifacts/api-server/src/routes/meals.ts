@@ -152,6 +152,13 @@ router.put("/meals/:id", async (req, res) => {
   }
   const body = bodyParsed.data;
 
+  const existing = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  if (existing.length === 0) {
+    res.status(404).json({ error: "Meal not found" });
+    return;
+  }
+  const oldMeal = existing[0];
+
   const updates: Record<string, unknown> = {};
   if (body.name !== undefined) updates.name = body.name;
   if (body.description !== undefined) updates.description = body.description;
@@ -164,11 +171,21 @@ router.put("/meals/:id", async (req, res) => {
     .set(updates)
     .where(eq(mealsTable.id, id))
     .returning();
-  if (!meal) {
-    res.status(404).json({ error: "Meal not found" });
-    return;
+
+  const newDate = meal.scheduledDate;
+  const newType = meal.mealType;
+  const slotChanged = oldMeal.scheduledDate !== newDate || oldMeal.mealType !== newType;
+  const posChanged = body.position !== undefined;
+
+  if (slotChanged) {
+    await reindexSlot(oldMeal.scheduledDate, oldMeal.mealType);
+    await reindexSlotWithInsert(newDate, newType, meal, meal.position);
+  } else if (posChanged) {
+    await reindexSlotWithInsert(newDate, newType, meal, meal.position);
   }
-  res.json(formatMeal(meal));
+
+  const [updated] = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  res.json(formatMeal(updated));
 });
 
 router.delete("/meals/:id", async (req, res) => {
@@ -192,8 +209,12 @@ router.delete("/meals/:id", async (req, res) => {
 
 router.get("/days", async (req, res) => {
   const parsed = ListDaysQueryParams.safeParse(req.query);
-  const startDateStr = parsed.success && parsed.data.startDate ? parsed.data.startDate : null;
-  const count = parsed.success && parsed.data.count ? parsed.data.count : 7;
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid query parameters", details: parsed.error.issues });
+    return;
+  }
+  const startDateStr = parsed.data.startDate ?? null;
+  const count = parsed.data.count ?? 7;
 
   const startDate = startDateStr ? new Date(startDateStr) : new Date();
   const today = new Date();

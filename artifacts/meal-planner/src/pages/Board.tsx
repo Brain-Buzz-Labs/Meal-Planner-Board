@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
 import { Plus, ChevronLeft, ChevronRight, Inbox, Sun, Moon } from "lucide-react";
-import { useListMeals, useMoveMeal, Meal, MealType } from "@workspace/api-client-react";
+import { useListMeals, useListDays, useMoveMeal, Meal, MealType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
@@ -66,9 +66,17 @@ export default function Board() {
   // Sync server meals to local state when query updates, unless we are dragging
   const displayMeals = optimisticMeals || serverMeals;
 
+  const { data: serverDays = [] } = useListDays({
+    startDate: format(startDate, "yyyy-MM-dd"),
+    count: 7,
+  });
+
   const days = useMemo(() => {
+    if (serverDays.length > 0) {
+      return serverDays.map(d => new Date(d.date + "T00:00:00"));
+    }
     return Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
-  }, [startDate]);
+  }, [serverDays, startDate]);
 
   const openAddDialog = (date?: Date, type?: MealType) => {
     setEditingMeal(null);
