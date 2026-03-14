@@ -25,7 +25,9 @@ function formatMeal(m: typeof mealsTable.$inferSelect) {
   };
 }
 
-async function getNextPosition(scheduledDate: string | null, mealType: string | null): Promise<number> {
+type MealType = (typeof mealsTable.$inferSelect)["mealType"];
+
+async function getNextPosition(scheduledDate: string | null, mealType: MealType): Promise<number> {
   const conditions = [];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
@@ -46,7 +48,7 @@ async function getNextPosition(scheduledDate: string | null, mealType: string | 
   return (result[0]?.maxPos ?? -1) + 1;
 }
 
-async function reindexSlot(scheduledDate: string | null, mealType: string | null) {
+async function reindexSlot(scheduledDate: string | null, mealType: MealType) {
   const conditions = [];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
@@ -72,7 +74,7 @@ async function reindexSlot(scheduledDate: string | null, mealType: string | null
   }
 }
 
-async function reindexSlotWithInsert(scheduledDate: string | null, mealType: string | null, movedMeal: typeof mealsTable.$inferSelect, targetPosition: number) {
+async function reindexSlotWithInsert(scheduledDate: string | null, mealType: MealType, movedMeal: typeof mealsTable.$inferSelect, targetPosition: number) {
   const conditions = [];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
