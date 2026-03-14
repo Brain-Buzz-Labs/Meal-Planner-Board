@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
 import { Meal, MealType, useCreateMeal, useUpdateMeal } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface MealFormDialogProps {
   isOpen: boolean;
@@ -16,11 +20,18 @@ interface MealFormDialogProps {
   defaultMealType?: MealType;
 }
 
+function parseDateString(dateStr: string): Date {
+  return parseISO(dateStr);
+}
+
 export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defaultMealType }: MealFormDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedMealType, setSelectedMealType] = useState<string>("none");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
   const createMutation = useCreateMeal({
     mutation: {
       onSuccess: () => {
@@ -44,16 +55,23 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
       if (initialData) {
         setName(initialData.name);
         setDescription(initialData.description || "");
+        setSelectedDate(initialData.scheduledDate ? parseDateString(initialData.scheduledDate) : undefined);
+        setSelectedMealType(initialData.mealType || "none");
       } else {
         setName("");
         setDescription("");
+        setSelectedDate(defaultDate ? parseDateString(defaultDate) : undefined);
+        setSelectedMealType(defaultMealType || "none");
       }
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, defaultDate, defaultMealType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    const dateValue = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
+    const mealTypeValue = selectedMealType !== "none" ? (selectedMealType as MealType) : null;
 
     if (initialData) {
       updateMutation.mutate({
@@ -61,8 +79,8 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
         data: {
           name,
           description: description || null,
-          scheduledDate: initialData.scheduledDate,
-          mealType: initialData.mealType,
+          scheduledDate: dateValue,
+          mealType: mealTypeValue,
           position: initialData.position,
         }
       });
@@ -71,8 +89,8 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
         data: {
           name,
           description: description || null,
-          scheduledDate: defaultDate || null,
-          mealType: defaultMealType || null,
+          scheduledDate: dateValue,
+          mealType: mealTypeValue,
         }
       });
     }
@@ -84,16 +102,16 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] rounded-2xl overflow-hidden shadow-2xl">
         <DialogHeader className="pt-2">
-          <DialogTitle className="text-2xl font-display text-foreground">
+          <DialogTitle className="text-2xl font-bold text-foreground">
             {initialData ? "Edit Meal" : "Add New Meal"}
           </DialogTitle>
           <DialogDescription>
-            {defaultDate && defaultMealType 
-              ? `Planning for ${defaultMealType} on ${format(new Date(defaultDate), "MMM d")}`
+            {initialData
+              ? "Update the details of this meal"
               : "Add a meal to your board"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold">Meal Name</Label>
             <Input
@@ -115,14 +133,75 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
               className="bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary resize-none h-24 rounded-xl"
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Date</Label>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal rounded-xl bg-secondary/50 border-transparent hover:bg-secondary"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {selectedDate ? format(selectedDate, "MMM d, yyyy") : <span className="text-muted-foreground">Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date ?? undefined);
+                      setCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                  {selectedDate && (
+                    <div className="p-2 border-t border-border">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-muted-foreground"
+                        onClick={() => {
+                          setSelectedDate(undefined);
+                          setCalendarOpen(false);
+                        }}
+                      >
+                        Clear date
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Meal Type</Label>
+              <Select value={selectedMealType} onValueChange={setSelectedMealType}>
+                <SelectTrigger className="rounded-xl bg-secondary/50 border-transparent">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="breakfast">Breakfast</SelectItem>
+                  <SelectItem value="lunch">Lunch</SelectItem>
+                  <SelectItem value="dinner">Dinner</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
             <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl font-medium">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!name.trim() || isPending}
-              className="rounded-xl font-medium bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all hover:-translate-y-0.5"
+              className="rounded-xl font-medium shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all hover:-translate-y-0.5"
             >
               {isPending ? "Saving..." : initialData ? "Save Changes" : "Add Meal"}
             </Button>

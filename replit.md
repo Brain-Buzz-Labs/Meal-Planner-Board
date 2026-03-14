@@ -12,7 +12,7 @@ Meal Planning Board — a full-stack web application for planning Breakfast, Lun
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM
-- **Frontend**: React + Vite + Tailwind CSS + shadcn/ui
+- **Frontend**: React + Vite + Tailwind CSS + shadcn/ui + Geist Sans font
 - **Drag & Drop**: @dnd-kit/core + @dnd-kit/sortable
 - **Date utilities**: date-fns
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
@@ -46,7 +46,8 @@ artifacts-monorepo/
 - **Drag and drop** meals between slots and days
 - **Unscheduled Meals** pool at the bottom for meal ideas saved for later
 - **Add/Edit/Delete** meals via dialog forms
-- **Light/Dark mode** toggle persisted to localStorage
+- **Light/Dark mode** toggle persisted to localStorage (dark: #292929/#343434)
+- **Date picker** in New Meal dialog with calendar popover and meal type selector
 - **Week navigation** with forward/backward arrows and "Today" button
 - **Today highlighting** — current date column is visually emphasized
 - **Database persistence** — all meals saved to PostgreSQL

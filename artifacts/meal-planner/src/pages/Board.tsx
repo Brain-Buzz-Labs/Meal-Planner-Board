@@ -267,10 +267,10 @@ export default function Board() {
       {/* HEADER */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
             <Inbox className="text-white w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-display text-foreground hidden sm:block">Menu Map</h1>
+          <h1 className="text-2xl font-bold text-foreground hidden sm:block">Menu Map</h1>
         </div>
 
         <div className="flex items-center gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm">
@@ -295,7 +295,7 @@ export default function Board() {
 
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
-            {theme === "dark" ? <Sun className="w-5 h-5 text-accent" /> : <Moon className="w-5 h-5 text-foreground/70" />}
+            {theme === "dark" ? <Sun className="w-5 h-5 text-primary" /> : <Moon className="w-5 h-5 text-foreground/70" />}
           </Button>
           <Button 
             onClick={() => openAddDialog()} 
@@ -332,7 +332,7 @@ export default function Board() {
                     `}
                   >
                     <div className={`p-4 text-center border-b ${isToday ? 'border-primary/20 bg-primary/10' : 'border-border/50 bg-secondary/60'}`}>
-                      <h3 className={`font-display text-lg ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                      <h3 className={`font-semibold text-lg ${isToday ? 'text-primary' : 'text-foreground'}`}>
                         {format(day, "EEEE")}
                       </h3>
                       <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mt-1">
