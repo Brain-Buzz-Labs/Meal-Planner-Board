@@ -20,7 +20,7 @@ import {
   horizontalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
-import { Plus, ChevronLeft, ChevronRight, Inbox, Sun, Moon } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Inbox, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
 import { useListMeals, useListDays, useMoveMeal, Meal, MealType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -349,9 +349,9 @@ export default function Board() {
                           <div key={slotId} className="flex flex-col">
                             <div className="flex items-center justify-between mb-3 px-1">
                               <h4 className="text-sm font-bold text-foreground/80 capitalize tracking-wide flex items-center gap-2">
-                                {type === "breakfast" && "🍳"}
-                                {type === "lunch" && "🥗"}
-                                {type === "dinner" && "🍽️"}
+                                {type === "breakfast" && <Egg className="w-4 h-4 text-muted-foreground" />}
+                                {type === "lunch" && <Salad className="w-4 h-4 text-muted-foreground" />}
+                                {type === "dinner" && <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />}
                                 {type}
                               </h4>
                               <button 
