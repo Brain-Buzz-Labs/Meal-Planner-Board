@@ -14,3 +14,83 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns all meals, both scheduled and unscheduled
+ * @summary List all meals
+ */
+export const ListMealsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number(),
+  createdAt: zod.date(),
+});
+export const ListMealsResponse = zod.array(ListMealsResponseItem);
+
+/**
+ * @summary Create a new meal
+ */
+export const CreateMealBody = zod.object({
+  name: zod.string(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+});
+
+/**
+ * @summary Update a meal
+ */
+export const UpdateMealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateMealBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number().optional(),
+});
+
+export const UpdateMealResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number(),
+  createdAt: zod.date(),
+});
+
+/**
+ * @summary Delete a meal
+ */
+export const DeleteMealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Move a meal to a different day/slot
+ */
+export const MoveMealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MoveMealBody = zod.object({
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number(),
+});
+
+export const MoveMealResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number(),
+  createdAt: zod.date(),
+});

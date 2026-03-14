@@ -6,4 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./createMealBody";
 export * from "./healthStatus";
+export * from "./meal";
+export * from "./mealType";
+export * from "./moveMealBody";
+export * from "./updateMealBody";

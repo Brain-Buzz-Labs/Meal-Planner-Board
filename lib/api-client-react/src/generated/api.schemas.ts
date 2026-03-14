@@ -8,3 +8,42 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type MealType = (typeof MealType)[keyof typeof MealType];
+
+export const MealType = {
+  breakfast: "breakfast",
+  lunch: "lunch",
+  dinner: "dinner",
+} as const;
+
+export interface Meal {
+  id: number;
+  name: string;
+  description?: string | null;
+  scheduledDate?: string | null;
+  mealType?: MealType | null;
+  position: number;
+  createdAt: string;
+}
+
+export interface CreateMealBody {
+  name: string;
+  description?: string | null;
+  scheduledDate?: string | null;
+  mealType?: MealType | null;
+}
+
+export interface UpdateMealBody {
+  name?: string;
+  description?: string | null;
+  scheduledDate?: string | null;
+  mealType?: MealType | null;
+  position?: number;
+}
+
+export interface MoveMealBody {
+  scheduledDate?: string | null;
+  mealType?: MealType | null;
+  position: number;
+}

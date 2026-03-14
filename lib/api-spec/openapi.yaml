@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: meals
+    description: Meal operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /meals:
+    get:
+      operationId: listMeals
+      tags: [meals]
+      summary: List all meals
+      description: Returns all meals, both scheduled and unscheduled
+      responses:
+        "200":
+          description: List of meals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Meal"
+    post:
+      operationId: createMeal
+      tags: [meals]
+      summary: Create a new meal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMealBody"
+      responses:
+        "201":
+          description: Created meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meal"
+  /meals/{id}:
+    put:
+      operationId: updateMeal
+      tags: [meals]
+      summary: Update a meal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMealBody"
+      responses:
+        "200":
+          description: Updated meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meal"
+        "404":
+          description: Meal not found
+    delete:
+      operationId: deleteMeal
+      tags: [meals]
+      summary: Delete a meal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Meal not found
+  /meals/{id}/move:
+    patch:
+      operationId: moveMeal
+      tags: [meals]
+      summary: Move a meal to a different day/slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveMealBody"
+      responses:
+        "200":
+          description: Moved meal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meal"
+        "404":
+          description: Meal not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +134,84 @@ components:
           type: string
       required:
         - status
-
+    MealType:
+      type: string
+      enum:
+        - breakfast
+        - lunch
+        - dinner
+    Meal:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduledDate:
+          type: string
+          format: date
+          nullable: true
+        mealType:
+          $ref: "#/components/schemas/MealType"
+          nullable: true
+        position:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - position
+        - createdAt
+    CreateMealBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduledDate:
+          type: string
+          format: date
+          nullable: true
+        mealType:
+          $ref: "#/components/schemas/MealType"
+          nullable: true
+      required:
+        - name
+    UpdateMealBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduledDate:
+          type: string
+          format: date
+          nullable: true
+        mealType:
+          $ref: "#/components/schemas/MealType"
+          nullable: true
+        position:
+          type: integer
+    MoveMealBody:
+      type: object
+      properties:
+        scheduledDate:
+          type: string
+          format: date
+          nullable: true
+        mealType:
+          $ref: "#/components/schemas/MealType"
+          nullable: true
+        position:
+          type: integer
+      required:
+        - position
