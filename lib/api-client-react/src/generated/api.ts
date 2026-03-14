@@ -18,7 +18,9 @@ import type {
 
 import type {
   CreateMealBody,
+  Day,
   HealthStatus,
+  ListDaysParams,
   Meal,
   MoveMealBody,
   UpdateMealBody,
@@ -431,6 +433,100 @@ export const useDeleteMeal = <
 > => {
   return useMutation(getDeleteMealMutationOptions(options));
 };
+
+/**
+ * @summary List days relative to a start date
+ */
+export const getListDaysUrl = (params?: ListDaysParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/days?${stringifiedParams}`
+    : `/api/days`;
+};
+
+export const listDays = async (
+  params?: ListDaysParams,
+  options?: RequestInit,
+): Promise<Day[]> => {
+  return customFetch<Day[]>(getListDaysUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDaysQueryKey = (params?: ListDaysParams) => {
+  return [`/api/days`, ...(params ? [params] : [])] as const;
+};
+
+export const getListDaysQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDays>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListDaysParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDays>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDaysQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDays>>> = ({
+    signal,
+  }) => listDays(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDays>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDaysQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDays>>
+>;
+export type ListDaysQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List days relative to a start date
+ */
+
+export function useListDays<
+  TData = Awaited<ReturnType<typeof listDays>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListDaysParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDays>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDaysQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Move a meal to a different day/slot

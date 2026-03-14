@@ -23,10 +23,10 @@ export const ListMealsResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
   position: zod.number(),
-  createdAt: zod.date(),
+  createdAt: zod.string().datetime({}),
 });
 export const ListMealsResponse = zod.array(ListMealsResponseItem);
 
@@ -36,7 +36,7 @@ export const ListMealsResponse = zod.array(ListMealsResponseItem);
 export const CreateMealBody = zod.object({
   name: zod.string(),
   description: zod.string().nullish(),
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
 });
 
@@ -50,7 +50,7 @@ export const UpdateMealParams = zod.object({
 export const UpdateMealBody = zod.object({
   name: zod.string().optional(),
   description: zod.string().nullish(),
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
   position: zod.number().optional(),
 });
@@ -59,10 +59,10 @@ export const UpdateMealResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
   position: zod.number(),
-  createdAt: zod.date(),
+  createdAt: zod.string().datetime({}),
 });
 
 /**
@@ -73,6 +73,30 @@ export const DeleteMealParams = zod.object({
 });
 
 /**
+ * @summary List days relative to a start date
+ */
+export const listDaysQueryCountDefault = 7;
+
+export const ListDaysQueryParams = zod.object({
+  startDate: zod.coerce
+    .string()
+    .date()
+    .optional()
+    .describe("Start date (defaults to today)"),
+  count: zod.coerce
+    .number()
+    .default(listDaysQueryCountDefault)
+    .describe("Number of days to return"),
+});
+
+export const ListDaysResponseItem = zod.object({
+  date: zod.string().date(),
+  dayOfWeek: zod.string(),
+  isToday: zod.boolean(),
+});
+export const ListDaysResponse = zod.array(ListDaysResponseItem);
+
+/**
  * @summary Move a meal to a different day/slot
  */
 export const MoveMealParams = zod.object({
@@ -80,7 +104,7 @@ export const MoveMealParams = zod.object({
 });
 
 export const MoveMealBody = zod.object({
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
   position: zod.number(),
 });
@@ -89,8 +113,8 @@ export const MoveMealResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
-  scheduledDate: zod.date().nullish(),
+  scheduledDate: zod.string().date().nullish(),
   mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
   position: zod.number(),
-  createdAt: zod.date(),
+  createdAt: zod.string().datetime({}),
 });

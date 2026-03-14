@@ -99,6 +99,35 @@ paths:
           description: Deleted
         "404":
           description: Meal not found
+  /days:
+    get:
+      operationId: listDays
+      tags: [meals]
+      summary: List days relative to a start date
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Start date (defaults to today)
+        - name: count
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 7
+          description: Number of days to return
+      responses:
+        "200":
+          description: List of day objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Day"
   /meals/{id}/move:
     patch:
       operationId: moveMeal
@@ -215,3 +244,17 @@ components:
           type: integer
       required:
         - position
+    Day:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        dayOfWeek:
+          type: string
+        isToday:
+          type: boolean
+      required:
+        - date
+        - dayOfWeek
+        - isToday

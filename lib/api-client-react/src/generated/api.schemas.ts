@@ -47,3 +47,20 @@ export interface MoveMealBody {
   mealType?: MealType | null;
   position: number;
 }
+
+export interface Day {
+  date: string;
+  dayOfWeek: string;
+  isToday: boolean;
+}
+
+export type ListDaysParams = {
+  /**
+   * Start date (defaults to today)
+   */
+  startDate?: string;
+  /**
+   * Number of days to return
+   */
+  count?: number;
+};

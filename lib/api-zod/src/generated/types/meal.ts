@@ -11,8 +11,8 @@ export interface Meal {
   id: number;
   name: string;
   description?: string | null;
-  scheduledDate?: Date | null;
+  scheduledDate?: string | null;
   mealType?: MealType | null;
   position: number;
-  createdAt: Date;
+  createdAt: string;
 }

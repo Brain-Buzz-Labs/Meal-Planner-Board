@@ -8,7 +8,7 @@
 import type { MealType } from "./mealType";
 
 export interface MoveMealBody {
-  scheduledDate?: Date | null;
+  scheduledDate?: string | null;
   mealType?: MealType | null;
   position: number;
 }

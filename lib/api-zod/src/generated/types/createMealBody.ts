@@ -10,6 +10,6 @@ import type { MealType } from "./mealType";
 export interface CreateMealBody {
   name: string;
   description?: string | null;
-  scheduledDate?: Date | null;
+  scheduledDate?: string | null;
   mealType?: MealType | null;
 }

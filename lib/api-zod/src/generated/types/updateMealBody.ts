@@ -10,7 +10,7 @@ import type { MealType } from "./mealType";
 export interface UpdateMealBody {
   name?: string;
   description?: string | null;
-  scheduledDate?: Date | null;
+  scheduledDate?: string | null;
   mealType?: MealType | null;
   position?: number;
 }

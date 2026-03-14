@@ -7,7 +7,9 @@
  */
 
 export * from "./createMealBody";
+export * from "./day";
 export * from "./healthStatus";
+export * from "./listDaysParams";
 export * from "./meal";
 export * from "./mealType";
 export * from "./moveMealBody";
