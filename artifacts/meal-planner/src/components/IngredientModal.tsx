@@ -101,6 +101,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
                   <button
                     onClick={() => deleteMutation.mutate({ id: mealId, ingredientId: ing.id })}
                     className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                    aria-label={`Remove ${ing.name}`}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -135,8 +136,10 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
               onClick={handleAdd}
               disabled={!newName.trim() || createMutation.isPending}
               className="h-9 px-3"
+              aria-label="Add ingredient"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-1" />
+              Add
             </Button>
           </div>
         </div>

@@ -451,7 +451,7 @@ export default function Board() {
       <IngredientModal
         meal={viewingMeal}
         isOpen={isIngredientModalOpen}
-        onClose={() => setIsIngredientModalOpen(false)}
+        onClose={() => { setIsIngredientModalOpen(false); setViewingMeal(null); }}
       />
     </div>
   );
