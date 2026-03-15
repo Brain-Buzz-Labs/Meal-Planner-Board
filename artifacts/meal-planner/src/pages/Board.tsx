@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 
 import { MealCard } from "@/components/MealCard";
 import { MealFormDialog } from "@/components/MealFormDialog";
+import { IngredientModal } from "@/components/IngredientModal";
 import { useTheme } from "@/hooks/use-theme";
 
 const MEAL_TYPES = [MealType.breakfast, MealType.lunch, MealType.dinner] as const;
@@ -56,6 +57,10 @@ export default function Board() {
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [defaultDate, setDefaultDate] = useState<string | undefined>();
   const [defaultMealType, setDefaultMealType] = useState<MealType | undefined>();
+
+  // Ingredient Modal State
+  const [viewingMeal, setViewingMeal] = useState<Meal | null>(null);
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
 
   const { data: serverMeals = [], isLoading } = useListMeals();
   const moveMutation = useMoveMeal();
@@ -90,6 +95,11 @@ export default function Board() {
     setDefaultDate(undefined);
     setDefaultMealType(undefined);
     setIsDialogOpen(true);
+  };
+
+  const openViewDialog = (meal: Meal) => {
+    setViewingMeal(meal);
+    setIsIngredientModalOpen(true);
   };
 
   const sensors = useSensors(
@@ -371,7 +381,7 @@ export default function Board() {
                                   </div>
                                 )}
                                 {mealsInSlot.map(meal => (
-                                  <MealCard key={meal.id} meal={meal} onEdit={openEditDialog} />
+                                  <MealCard key={meal.id} meal={meal} onEdit={openEditDialog} onView={openViewDialog} />
                                 ))}
                               </DroppableSlot>
                             </SortableContext>
@@ -411,7 +421,7 @@ export default function Board() {
                     )}
                     {unscheduledMeals.map(meal => (
                       <div key={meal.id} className="w-[280px]">
-                        <MealCard meal={meal} onEdit={openEditDialog} />
+                        <MealCard meal={meal} onEdit={openEditDialog} onView={openViewDialog} />
                       </div>
                     ))}
                   </div>
@@ -437,6 +447,11 @@ export default function Board() {
         initialData={editingMeal}
         defaultDate={defaultDate}
         defaultMealType={defaultMealType}
+      />
+      <IngredientModal
+        meal={viewingMeal}
+        isOpen={isIngredientModalOpen}
+        onClose={() => setIsIngredientModalOpen(false)}
       />
     </div>
   );

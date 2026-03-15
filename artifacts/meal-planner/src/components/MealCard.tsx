@@ -13,9 +13,10 @@ import { useQueryClient } from "@tanstack/react-query";
 interface MealCardProps {
   meal: Meal;
   onEdit: (meal: Meal) => void;
+  onView?: (meal: Meal) => void;
 }
 
-export function MealCard({ meal, onEdit }: MealCardProps) {
+export function MealCard({ meal, onEdit, onView }: MealCardProps) {
   const queryClient = useQueryClient();
   const deleteMutation = useDeleteMeal({
     mutation: {
@@ -61,7 +62,10 @@ export function MealCard({ meal, onEdit }: MealCardProps) {
         <GripVertical className="w-4 h-4" />
       </div>
       
-      <div className="flex-1 min-w-0 flex flex-col pt-0.5">
+      <div
+        className="flex-1 min-w-0 flex flex-col pt-0.5 cursor-pointer"
+        onClick={() => onView?.(meal)}
+      >
         <h4 className="font-semibold text-sm text-card-foreground leading-tight truncate">
           {meal.name}
         </h4>

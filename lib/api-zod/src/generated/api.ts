@@ -97,6 +97,42 @@ export const ListDaysResponseItem = zod.object({
 export const ListDaysResponse = zod.array(ListDaysResponseItem);
 
 /**
+ * @summary List ingredients for a meal
+ */
+export const ListIngredientsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListIngredientsResponseItem = zod.object({
+  id: zod.number(),
+  mealId: zod.number(),
+  name: zod.string(),
+  measurement: zod.string().nullish(),
+  createdAt: zod.string().datetime({}),
+});
+export const ListIngredientsResponse = zod.array(ListIngredientsResponseItem);
+
+/**
+ * @summary Add an ingredient to a meal
+ */
+export const CreateIngredientParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CreateIngredientBody = zod.object({
+  name: zod.string(),
+  measurement: zod.string().nullish(),
+});
+
+/**
+ * @summary Delete an ingredient
+ */
+export const DeleteIngredientParams = zod.object({
+  id: zod.coerce.number(),
+  ingredientId: zod.coerce.number(),
+});
+
+/**
  * @summary Move a meal to a different day/slot
  */
 export const MoveMealParams = zod.object({

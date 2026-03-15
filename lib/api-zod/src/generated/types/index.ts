@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./createIngredientBody";
 export * from "./createMealBody";
 export * from "./day";
 export * from "./healthStatus";
+export * from "./ingredient";
 export * from "./listDaysParams";
 export * from "./meal";
 export * from "./mealType";

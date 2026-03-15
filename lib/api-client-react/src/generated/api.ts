@@ -17,9 +17,11 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreateIngredientBody,
   CreateMealBody,
   Day,
   HealthStatus,
+  Ingredient,
   ListDaysParams,
   Meal,
   MoveMealBody,
@@ -527,6 +529,265 @@ export function useListDays<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List ingredients for a meal
+ */
+export const getListIngredientsUrl = (id: number) => {
+  return `/api/meals/${id}/ingredients`;
+};
+
+export const listIngredients = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Ingredient[]> => {
+  return customFetch<Ingredient[]>(getListIngredientsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListIngredientsQueryKey = (id: number) => {
+  return [`/api/meals/${id}/ingredients`] as const;
+};
+
+export const getListIngredientsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listIngredients>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listIngredients>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListIngredientsQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listIngredients>>> = ({
+    signal,
+  }) => listIngredients(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listIngredients>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListIngredientsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listIngredients>>
+>;
+export type ListIngredientsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List ingredients for a meal
+ */
+
+export function useListIngredients<
+  TData = Awaited<ReturnType<typeof listIngredients>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listIngredients>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListIngredientsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add an ingredient to a meal
+ */
+export const getCreateIngredientUrl = (id: number) => {
+  return `/api/meals/${id}/ingredients`;
+};
+
+export const createIngredient = async (
+  id: number,
+  createIngredientBody: CreateIngredientBody,
+  options?: RequestInit,
+): Promise<Ingredient> => {
+  return customFetch<Ingredient>(getCreateIngredientUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createIngredientBody),
+  });
+};
+
+export const getCreateIngredientMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createIngredient>>,
+    TError,
+    { id: number; data: BodyType<CreateIngredientBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createIngredient>>,
+  TError,
+  { id: number; data: BodyType<CreateIngredientBody> },
+  TContext
+> => {
+  const mutationKey = ["createIngredient"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createIngredient>>,
+    { id: number; data: BodyType<CreateIngredientBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createIngredient(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateIngredientMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createIngredient>>
+>;
+export type CreateIngredientMutationBody = BodyType<CreateIngredientBody>;
+export type CreateIngredientMutationError = ErrorType<void>;
+
+/**
+ * @summary Add an ingredient to a meal
+ */
+export const useCreateIngredient = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createIngredient>>,
+    TError,
+    { id: number; data: BodyType<CreateIngredientBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createIngredient>>,
+  TError,
+  { id: number; data: BodyType<CreateIngredientBody> },
+  TContext
+> => {
+  return useMutation(getCreateIngredientMutationOptions(options));
+};
+
+/**
+ * @summary Delete an ingredient
+ */
+export const getDeleteIngredientUrl = (id: number, ingredientId: number) => {
+  return `/api/meals/${id}/ingredients/${ingredientId}`;
+};
+
+export const deleteIngredient = async (
+  id: number,
+  ingredientId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteIngredientUrl(id, ingredientId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteIngredientMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteIngredient>>,
+    TError,
+    { id: number; ingredientId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteIngredient>>,
+  TError,
+  { id: number; ingredientId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteIngredient"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteIngredient>>,
+    { id: number; ingredientId: number }
+  > = (props) => {
+    const { id, ingredientId } = props ?? {};
+
+    return deleteIngredient(id, ingredientId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteIngredientMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteIngredient>>
+>;
+
+export type DeleteIngredientMutationError = ErrorType<void>;
+
+/**
+ * @summary Delete an ingredient
+ */
+export const useDeleteIngredient = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteIngredient>>,
+    TError,
+    { id: number; ingredientId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteIngredient>>,
+  TError,
+  { id: number; ingredientId: number },
+  TContext
+> => {
+  return useMutation(getDeleteIngredientMutationOptions(options));
+};
 
 /**
  * @summary Move a meal to a different day/slot

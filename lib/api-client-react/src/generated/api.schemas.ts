@@ -54,6 +54,19 @@ export interface Day {
   isToday: boolean;
 }
 
+export interface Ingredient {
+  id: number;
+  mealId: number;
+  name: string;
+  measurement?: string | null;
+  createdAt: string;
+}
+
+export interface CreateIngredientBody {
+  name: string;
+  measurement?: string | null;
+}
+
 export type ListDaysParams = {
   /**
    * Start date (defaults to today)

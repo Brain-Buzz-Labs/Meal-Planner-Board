@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: meals
     description: Meal operations
+  - name: ingredients
+    description: Ingredient operations
 paths:
   /healthz:
     get:
@@ -128,6 +130,72 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Day"
+  /meals/{id}/ingredients:
+    get:
+      operationId: listIngredients
+      tags: [ingredients]
+      summary: List ingredients for a meal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ingredient"
+    post:
+      operationId: createIngredient
+      tags: [ingredients]
+      summary: Add an ingredient to a meal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIngredientBody"
+      responses:
+        "201":
+          description: Created ingredient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ingredient"
+        "404":
+          description: Meal not found
+  /meals/{id}/ingredients/{ingredientId}:
+    delete:
+      operationId: deleteIngredient
+      tags: [ingredients]
+      summary: Delete an ingredient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ingredientId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Ingredient not found
   /meals/{id}/move:
     patch:
       operationId: moveMeal
@@ -258,3 +326,33 @@ components:
         - date
         - dayOfWeek
         - isToday
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        mealId:
+          type: integer
+        name:
+          type: string
+        measurement:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - mealId
+        - name
+        - createdAt
+    CreateIngredientBody:
+      type: object
+      properties:
+        name:
+          type: string
+        measurement:
+          type: string
+          nullable: true
+      required:
+        - name
