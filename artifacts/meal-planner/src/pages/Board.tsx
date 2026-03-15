@@ -21,9 +21,10 @@ import {
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
 import { Plus, ChevronLeft, ChevronRight, Cat, Inbox, History, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
-import { useListMeals, useListDays, useMoveMeal, useListPastMeals, Meal, MealType } from "@workspace/api-client-react";
+import { useListMeals, useListDays, useMoveMeal, useCreateMeal, useListPastMeals, Meal, MealType, MealWithIngredients } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { MealCard } from "@/components/MealCard";
 import { MealFormDialog } from "@/components/MealFormDialog";
@@ -66,6 +67,7 @@ export default function Board() {
   const { data: serverMeals = [], isLoading } = useListMeals();
   const { data: pastMeals = [] } = useListPastMeals();
   const moveMutation = useMoveMeal();
+  const createMutation = useCreateMeal();
 
   // Optimistic local state for smooth DND
   const [optimisticMeals, setOptimisticMeals] = useState<Meal[] | null>(null);
@@ -125,99 +127,128 @@ export default function Board() {
     .filter(m => !m.scheduledDate)
     .sort((a, b) => a.position - b.position);
 
+  const resolveTarget = (overId: string): { targetContainerId: string; newPosition: number } | null => {
+    const isOverContainer = overId.includes("::") || overId === "unscheduled" || overId === "previous-meals";
+    if (isOverContainer) {
+      const targetContainerId = overId;
+      let newPosition = 0;
+      if (targetContainerId === "unscheduled") {
+        newPosition = unscheduledMeals.length;
+      } else if (targetContainerId === "previous-meals") {
+        return null;
+      } else {
+        const [dateStr, type] = targetContainerId.split("::");
+        newPosition = getMealsForSlot(dateStr, type as MealType).length;
+      }
+      return { targetContainerId, newPosition };
+    }
+
+    const overMeal = displayMeals.find(m => `meal-${m.id}` === overId);
+    if (overMeal) {
+      if (!overMeal.scheduledDate) {
+        const overIndex = unscheduledMeals.findIndex(m => m.id === overMeal.id);
+        return { targetContainerId: "unscheduled", newPosition: Math.max(0, overIndex) };
+      }
+      const targetContainerId = `${overMeal.scheduledDate}::${overMeal.mealType}`;
+      const slotMeals = getMealsForSlot(overMeal.scheduledDate, overMeal.mealType as MealType);
+      const overIndex = slotMeals.findIndex(m => m.id === overMeal.id);
+      return { targetContainerId, newPosition: Math.max(0, overIndex) };
+    }
+    return null;
+  };
+
+  const parseTarget = (targetContainerId: string) => {
+    if (targetContainerId === "unscheduled") return { newDate: null as string | null, newType: null as MealType | null };
+    const [d, t] = targetContainerId.split("::");
+    return { newDate: d, newType: t as MealType };
+  };
+
   // --- DND HANDLERS ---
   const onDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const meal = displayMeals.find(m => `meal-${m.id}` === active.id);
-    if (meal) {
-      setActiveMeal(meal);
-      // Initialize optimistic state if not already
-      if (!optimisticMeals) setOptimisticMeals(serverMeals);
+    const activeId = active.id as string;
+
+    if (activeId.startsWith("meal-")) {
+      const meal = displayMeals.find(m => `meal-${m.id}` === activeId);
+      if (meal) {
+        setActiveMeal(meal);
+        if (!optimisticMeals) setOptimisticMeals(serverMeals);
+      }
+    } else if (activeId.startsWith("recipe-")) {
+      const recipeId = parseInt(activeId.replace("recipe-", ""), 10);
+      const recipe = pastMeals.find(m => m.id === recipeId);
+      if (recipe) {
+        setActiveMeal(recipe as Meal);
+      }
     }
   };
 
-  const onDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    if (activeId === overId) return;
-
-    // We can handle visual shifting here if we want items to move while dragging over other items
-    // But since our columns are small and we snap on Drop, we'll keep the core mutation in DragEnd.
-  };
+  const onDragOver = (_event: DragOverEvent) => {};
 
   const onDragEnd = (event: DragEndEvent) => {
     setActiveMeal(null);
     const { active, over } = event;
-    
+
     if (!over) {
-      setOptimisticMeals(null); // revert
+      setOptimisticMeals(null);
       return;
     }
 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Find the dragged meal
-    const activeMealObj = displayMeals.find(m => `meal-${m.id}` === activeId);
-    if (!activeMealObj) return;
+    const isRecipeDrag = activeId.startsWith("recipe-");
 
-    // Determine target container and new position
-    let targetContainerId = "";
-    let newPosition = 0;
+    if (isRecipeDrag) {
+      const recipeId = parseInt(activeId.replace("recipe-", ""), 10);
+      const recipe = pastMeals.find(m => m.id === recipeId);
+      if (!recipe) return;
 
-    const isOverContainer = overId.includes("::") || overId === "unscheduled";
-    
-    if (isOverContainer) {
-      // Dropped directly on a container area
-      targetContainerId = overId;
-      // Get items in that container to put it at the end
-      if (targetContainerId === "unscheduled") {
-        newPosition = unscheduledMeals.length;
-      } else {
-        const [dateStr, type] = targetContainerId.split("::");
-        newPosition = getMealsForSlot(dateStr, type as MealType).length;
-      }
-    } else {
-      // Dropped over another item
-      const overMeal = displayMeals.find(m => `meal-${m.id}` === overId);
-      if (overMeal) {
-        if (!overMeal.scheduledDate) {
-          targetContainerId = "unscheduled";
-          const overIndex = unscheduledMeals.findIndex(m => m.id === overMeal.id);
-          newPosition = overIndex;
-        } else {
-          targetContainerId = `${overMeal.scheduledDate}::${overMeal.mealType}`;
-          const slotMeals = getMealsForSlot(overMeal.scheduledDate, overMeal.mealType as MealType);
-          const overIndex = slotMeals.findIndex(m => m.id === overMeal.id);
-          newPosition = overIndex; // Insert at that index
+      if (overId === "previous-meals" || overId.startsWith("recipe-")) return;
+
+      const target = resolveTarget(overId);
+      if (!target) return;
+      const { newDate, newType } = parseTarget(target.targetContainerId);
+
+      createMutation.mutate({
+        data: {
+          name: recipe.name,
+          description: recipe.description ?? undefined,
+          scheduledDate: newDate,
+          mealType: newType,
         }
-      } else {
-        setOptimisticMeals(null);
-        return;
-      }
+      }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+          toast.success(`Scheduled "${recipe.name}"`);
+        },
+        onError: () => {
+          toast.error("Couldn't schedule recipe — please try again");
+        }
+      });
+      return;
     }
 
-    let newDate: string | null = null;
-    let newType: MealType | null = null;
-
-    if (targetContainerId !== "unscheduled") {
-      const [d, t] = targetContainerId.split("::");
-      newDate = d;
-      newType = t as MealType;
+    const activeMealObj = displayMeals.find(m => `meal-${m.id}` === activeId);
+    if (!activeMealObj) {
+      setOptimisticMeals(null);
+      return;
     }
 
-    // Apply optimistic update
+    const target = resolveTarget(overId);
+    if (!target) {
+      setOptimisticMeals(null);
+      return;
+    }
+
+    const { targetContainerId, newPosition } = target;
+    const { newDate, newType } = parseTarget(targetContainerId);
+
     const newMeals = [...displayMeals];
     const mealIndex = newMeals.findIndex(m => m.id === activeMealObj.id);
-    
-    // Remove from old pos
-    newMeals.splice(mealIndex, 1);
-    
-    // Create updated meal
+    if (mealIndex >= 0) newMeals.splice(mealIndex, 1);
+
     const updatedMeal = {
       ...activeMealObj,
       scheduledDate: newDate,
@@ -225,25 +256,19 @@ export default function Board() {
       position: newPosition
     };
 
-    // We also need to re-adjust positions for other items in the target container
     const itemsInTarget = newMeals
       .filter(m => m.scheduledDate === newDate && m.mealType === newType)
       .sort((a, b) => a.position - b.position);
-    
-    // Insert updated meal into sorted array
+
     itemsInTarget.splice(newPosition, 0, updatedMeal);
-    
-    // Reassign strict sequential positions
     itemsInTarget.forEach((m, idx) => { m.position = idx; });
 
-    // Update the main array
     const finalMeals = newMeals
-      .filter(m => !(m.scheduledDate === newDate && m.mealType === newType)) // remove old target items
-      .concat(itemsInTarget); // add adjusted target items
+      .filter(m => !(m.scheduledDate === newDate && m.mealType === newType))
+      .concat(itemsInTarget);
 
     setOptimisticMeals(finalMeals);
 
-    // Fire mutation
     moveMutation.mutate({
       id: activeMealObj.id,
       data: {
@@ -252,14 +277,14 @@ export default function Board() {
         position: newPosition
       }
     }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
-        // Let React Query sync it, then clear optimistic
-        setTimeout(() => setOptimisticMeals(null), 300);
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+        setOptimisticMeals(null);
       },
       onError: () => {
-        setOptimisticMeals(null); // revert on fail
+        setOptimisticMeals(null);
+        toast.error("Couldn't move meal — please try again");
       }
     });
   };
@@ -443,18 +468,26 @@ export default function Board() {
                     {pastMeals.length}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-3 min-h-[60px]">
-                  {pastMeals.length === 0 ? (
-                    <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-4">
-                      <p className="text-sm font-medium">No past recipes yet.</p>
-                      <p className="text-xs mt-1">Meals from previous days will show up here.</p>
+                <SortableContext
+                  id="previous-meals"
+                  items={pastMeals.map(m => `recipe-${m.id}`)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  <DroppableSlot id="previous-meals">
+                    <div className="flex flex-wrap gap-3 min-h-[60px]">
+                      {pastMeals.length === 0 ? (
+                        <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-4">
+                          <p className="text-sm font-medium">No past recipes yet.</p>
+                          <p className="text-xs mt-1">Meals from previous days will show up here.</p>
+                        </div>
+                      ) : (
+                        pastMeals.map(meal => (
+                          <RecipeCard key={meal.id} meal={meal} onView={openViewDialog} />
+                        ))
+                      )}
                     </div>
-                  ) : (
-                    pastMeals.map(meal => (
-                      <RecipeCard key={meal.id} meal={meal} onView={openViewDialog} />
-                    ))
-                  )}
-                </div>
+                  </DroppableSlot>
+                </SortableContext>
               </div>
             </div>
           </div>
