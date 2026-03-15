@@ -67,6 +67,17 @@ export interface CreateIngredientBody {
   measurement?: string | null;
 }
 
+export interface MealWithIngredients {
+  id: number;
+  name: string;
+  description?: string | null;
+  scheduledDate?: string | null;
+  mealType?: MealType | null;
+  position: number;
+  createdAt: string;
+  ingredients: Ingredient[];
+}
+
 export type ListDaysParams = {
   /**
    * Start date (defaults to today)

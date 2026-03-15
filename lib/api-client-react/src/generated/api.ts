@@ -24,6 +24,7 @@ import type {
   Ingredient,
   ListDaysParams,
   Meal,
+  MealWithIngredients,
   MoveMealBody,
   UpdateMealBody,
 } from "./api.schemas";
@@ -435,6 +436,82 @@ export const useDeleteMeal = <
 > => {
   return useMutation(getDeleteMealMutationOptions(options));
 };
+
+/**
+ * Returns meals scheduled before today, deduplicated by name, with their ingredients
+ * @summary List past meals with ingredients (deduplicated by name)
+ */
+export const getListPastMealsUrl = () => {
+  return `/api/meals/past`;
+};
+
+export const listPastMeals = async (
+  options?: RequestInit,
+): Promise<MealWithIngredients[]> => {
+  return customFetch<MealWithIngredients[]>(getListPastMealsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPastMealsQueryKey = () => {
+  return [`/api/meals/past`] as const;
+};
+
+export const getListPastMealsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPastMeals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPastMeals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPastMealsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPastMeals>>> = ({
+    signal,
+  }) => listPastMeals({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPastMeals>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPastMealsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPastMeals>>
+>;
+export type ListPastMealsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List past meals with ingredients (deduplicated by name)
+ */
+
+export function useListPastMeals<
+  TData = Awaited<ReturnType<typeof listPastMeals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPastMeals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPastMealsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List days relative to a start date

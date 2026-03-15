@@ -20,14 +20,15 @@ import {
   horizontalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
-import { Plus, ChevronLeft, ChevronRight, Cat, Inbox, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
-import { useListMeals, useListDays, useMoveMeal, Meal, MealType } from "@workspace/api-client-react";
+import { Plus, ChevronLeft, ChevronRight, Cat, Inbox, History, Sun, Moon, Egg, Salad, UtensilsCrossed } from "lucide-react";
+import { useListMeals, useListDays, useMoveMeal, useListPastMeals, Meal, MealType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
 import { MealCard } from "@/components/MealCard";
 import { MealFormDialog } from "@/components/MealFormDialog";
 import { IngredientModal } from "@/components/IngredientModal";
+import { RecipeCard } from "@/components/RecipeCard";
 import { useTheme } from "@/hooks/use-theme";
 
 const MEAL_TYPES = [MealType.breakfast, MealType.lunch, MealType.dinner] as const;
@@ -63,6 +64,7 @@ export default function Board() {
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
 
   const { data: serverMeals = [], isLoading } = useListMeals();
+  const { data: pastMeals = [] } = useListPastMeals();
   const moveMutation = useMoveMeal();
 
   // Optimistic local state for smooth DND
@@ -395,38 +397,64 @@ export default function Board() {
             </div>
           </div>
 
-          {/* UNSCHEDULED POOL DRAWER (Bottom) */}
+          {/* BOTTOM PANEL — Two columns */}
           <div className="bg-secondary/30 border-t border-border/50 p-6 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)]">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-2 mb-4">
-                <Inbox className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold text-foreground">Unscheduled Ideas</h3>
-                <span className="bg-background px-2 py-0.5 rounded-full text-xs font-bold text-muted-foreground border border-border">
-                  {unscheduledMeals.length}
-                </span>
+            <div className="max-w-7xl mx-auto flex gap-6">
+              {/* Left: Unscheduled Ideas */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-4">
+                  <Inbox className="w-5 h-5 text-muted-foreground" />
+                  <h3 className="font-semibold text-foreground">Unscheduled Ideas</h3>
+                  <span className="bg-background px-2 py-0.5 rounded-full text-xs font-bold text-muted-foreground border border-border">
+                    {unscheduledMeals.length}
+                  </span>
+                </div>
+                
+                <SortableContext 
+                  id="unscheduled"
+                  items={unscheduledMeals.map(m => `meal-${m.id}`)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  <DroppableSlot id="unscheduled">
+                    <div className="flex flex-wrap gap-3 min-h-[60px]">
+                      {unscheduledMeals.length === 0 && (
+                        <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-4">
+                          <p className="text-sm font-medium">No loose ideas right now.</p>
+                          <p className="text-xs mt-1">Create a new meal without a date to save it here.</p>
+                        </div>
+                      )}
+                      {unscheduledMeals.map(meal => (
+                        <div key={meal.id} className="w-[280px]">
+                          <MealCard meal={meal} onEdit={openEditDialog} onView={openViewDialog} />
+                        </div>
+                      ))}
+                    </div>
+                  </DroppableSlot>
+                </SortableContext>
               </div>
-              
-              <SortableContext 
-                id="unscheduled"
-                items={unscheduledMeals.map(m => `meal-${m.id}`)}
-                strategy={horizontalListSortingStrategy}
-              >
-                <DroppableSlot id="unscheduled">
-                  <div className="flex flex-wrap gap-3 min-h-[60px]">
-                    {unscheduledMeals.length === 0 && (
-                      <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-4">
-                        <p className="text-sm font-medium">No loose ideas right now.</p>
-                        <p className="text-xs mt-1">Create a new meal without a date to save it here.</p>
-                      </div>
-                    )}
-                    {unscheduledMeals.map(meal => (
-                      <div key={meal.id} className="w-[280px]">
-                        <MealCard meal={meal} onEdit={openEditDialog} onView={openViewDialog} />
-                      </div>
-                    ))}
-                  </div>
-                </DroppableSlot>
-              </SortableContext>
+
+              {/* Right: Previously Made */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="w-5 h-5 text-muted-foreground" />
+                  <h3 className="font-semibold text-foreground">Previously Made</h3>
+                  <span className="bg-background px-2 py-0.5 rounded-full text-xs font-bold text-muted-foreground border border-border">
+                    {pastMeals.length}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-3 min-h-[60px]">
+                  {pastMeals.length === 0 ? (
+                    <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-4">
+                      <p className="text-sm font-medium">No past recipes yet.</p>
+                      <p className="text-xs mt-1">Meals from previous days will show up here.</p>
+                    </div>
+                  ) : (
+                    pastMeals.map(meal => (
+                      <RecipeCard key={meal.id} meal={meal} onView={openViewDialog} />
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

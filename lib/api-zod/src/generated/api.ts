@@ -73,6 +73,30 @@ export const DeleteMealParams = zod.object({
 });
 
 /**
+ * Returns meals scheduled before today, deduplicated by name, with their ingredients
+ * @summary List past meals with ingredients (deduplicated by name)
+ */
+export const ListPastMealsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  scheduledDate: zod.string().date().nullish(),
+  mealType: zod.enum(["breakfast", "lunch", "dinner"]).nullish(),
+  position: zod.number(),
+  createdAt: zod.string().datetime({}),
+  ingredients: zod.array(
+    zod.object({
+      id: zod.number(),
+      mealId: zod.number(),
+      name: zod.string(),
+      measurement: zod.string().nullish(),
+      createdAt: zod.string().datetime({}),
+    }),
+  ),
+});
+export const ListPastMealsResponse = zod.array(ListPastMealsResponseItem);
+
+/**
  * @summary List days relative to a start date
  */
 export const listDaysQueryCountDefault = 7;

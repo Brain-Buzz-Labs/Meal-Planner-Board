@@ -101,6 +101,21 @@ paths:
           description: Deleted
         "404":
           description: Meal not found
+  /meals/past:
+    get:
+      operationId: listPastMeals
+      tags: [meals]
+      summary: List past meals with ingredients (deduplicated by name)
+      description: Returns meals scheduled before today, deduplicated by name, with their ingredients
+      responses:
+        "200":
+          description: List of past meals with ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MealWithIngredients"
   /days:
     get:
       operationId: listDays
@@ -356,3 +371,35 @@ components:
           nullable: true
       required:
         - name
+    MealWithIngredients:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        scheduledDate:
+          type: string
+          format: date
+          nullable: true
+        mealType:
+          $ref: "#/components/schemas/MealType"
+          nullable: true
+        position:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ingredient"
+      required:
+        - id
+        - name
+        - position
+        - createdAt
+        - ingredients

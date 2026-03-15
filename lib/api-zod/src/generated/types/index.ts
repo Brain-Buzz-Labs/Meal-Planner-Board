@@ -14,5 +14,6 @@ export * from "./ingredient";
 export * from "./listDaysParams";
 export * from "./meal";
 export * from "./mealType";
+export * from "./mealWithIngredients";
 export * from "./moveMealBody";
 export * from "./updateMealBody";
