@@ -102,7 +102,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-2xl overflow-hidden shadow-2xl">
         <DialogHeader className="pt-2">
           <DialogTitle className="text-2xl font-bold text-foreground">
             {initialData ? "Edit Meal" : "Add New Meal"}

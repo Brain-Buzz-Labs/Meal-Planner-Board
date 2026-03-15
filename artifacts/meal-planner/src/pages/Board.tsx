@@ -433,7 +433,7 @@ export default function Board() {
 
           {/* BOTTOM PANEL — Two columns */}
           <div className="bg-secondary/30 border-t border-border/50 p-6 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)]">
-            <div className="max-w-7xl mx-auto flex gap-6">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
               {/* Left: Unscheduled Ideas */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-4">

@@ -75,7 +75,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UtensilsCrossed className="w-5 h-5 text-primary" />
