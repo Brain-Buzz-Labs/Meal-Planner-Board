@@ -1,16 +1,16 @@
 import { format, parseISO } from "date-fns";
 import { UtensilsCrossed } from "lucide-react";
-import type { MealWithIngredients, Meal } from "@workspace/api-client-react";
+import type { MealWithIngredients } from "@workspace/api-client-react";
 
 interface RecipeCardProps {
   meal: MealWithIngredients;
-  onView: (meal: Meal) => void;
+  onView: (meal: MealWithIngredients) => void;
 }
 
 export function RecipeCard({ meal, onView }: RecipeCardProps) {
   return (
     <div
-      onClick={() => onView(meal as Meal)}
+      onClick={() => onView(meal)}
       className="p-3 bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer w-[280px]"
     >
       <div className="flex items-center gap-2 mb-2">

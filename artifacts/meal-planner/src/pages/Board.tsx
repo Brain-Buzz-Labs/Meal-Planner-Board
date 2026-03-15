@@ -254,6 +254,7 @@ export default function Board() {
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
         // Let React Query sync it, then clear optimistic
         setTimeout(() => setOptimisticMeals(null), 300);
       },

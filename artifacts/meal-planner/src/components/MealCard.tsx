@@ -20,7 +20,7 @@ export function MealCard({ meal, onEdit, onView }: MealCardProps) {
   const queryClient = useQueryClient();
   const deleteMutation = useDeleteMeal({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/meals"] })
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/meals"] }); queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] }); }
     }
   });
 

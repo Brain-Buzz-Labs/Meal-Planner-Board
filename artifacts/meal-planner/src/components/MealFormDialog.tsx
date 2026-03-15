@@ -36,6 +36,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
         onClose();
       }
     }
@@ -45,6 +46,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
         onClose();
       }
     }
