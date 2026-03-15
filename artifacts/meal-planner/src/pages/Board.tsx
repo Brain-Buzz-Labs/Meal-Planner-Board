@@ -143,6 +143,10 @@ export default function Board() {
       return { targetContainerId, newPosition };
     }
 
+    if (overId.startsWith("recipe-")) {
+      return { targetContainerId: "previous-meals", newPosition: 0 };
+    }
+
     const overMeal = displayMeals.find(m => `meal-${m.id}` === overId);
     if (overMeal) {
       if (!overMeal.scheduledDate) {
@@ -242,7 +246,11 @@ export default function Board() {
       return;
     }
 
-    const { targetContainerId, newPosition } = target;
+    let { targetContainerId, newPosition } = target;
+    if (targetContainerId === "previous-meals") {
+      targetContainerId = "unscheduled";
+      newPosition = unscheduledMeals.length;
+    }
     const { newDate, newType } = parseTarget(targetContainerId);
 
     const newMeals = [...displayMeals];
