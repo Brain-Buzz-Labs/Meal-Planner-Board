@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { Meal, MealType, useCreateMeal, useUpdateMeal } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +28,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedMealType, setSelectedMealType] = useState<string>("none");
+  const [selectedMealType, setSelectedMealType] = useState<string>("dinner");
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const createMutation = useCreateMeal({
@@ -58,12 +57,12 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
         setName(initialData.name);
         setDescription(initialData.description || "");
         setSelectedDate(initialData.scheduledDate ? parseDateString(initialData.scheduledDate) : undefined);
-        setSelectedMealType(initialData.mealType || "none");
+        setSelectedMealType(initialData.mealType || "dinner");
       } else {
         setName("");
         setDescription("");
         setSelectedDate(defaultDate ? parseDateString(defaultDate) : undefined);
-        setSelectedMealType(defaultMealType || "none");
+        setSelectedMealType(defaultMealType || "dinner");
       }
     }
   }, [isOpen, initialData, defaultDate, defaultMealType]);
@@ -73,7 +72,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     if (!name.trim()) return;
 
     const dateValue = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
-    const mealTypeValue = selectedMealType !== "none" ? (selectedMealType as MealType) : null;
+    const mealTypeValue = (selectedMealType as MealType) || MealType.dinner;
 
     if (initialData) {
       updateMutation.mutate({
@@ -180,20 +179,6 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Meal Type</Label>
-              <Select value={selectedMealType} onValueChange={setSelectedMealType}>
-                <SelectTrigger className="rounded-xl bg-secondary/50 border-transparent">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="breakfast">Breakfast</SelectItem>
-                  <SelectItem value="lunch">Lunch</SelectItem>
-                  <SelectItem value="dinner">Dinner</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border/50">

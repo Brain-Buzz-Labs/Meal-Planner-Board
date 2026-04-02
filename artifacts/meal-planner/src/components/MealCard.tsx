@@ -78,7 +78,7 @@ export function MealCard({ meal, onEdit, onView }: MealCardProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-all">
+          <button className="sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-all">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </DropdownMenuTrigger>

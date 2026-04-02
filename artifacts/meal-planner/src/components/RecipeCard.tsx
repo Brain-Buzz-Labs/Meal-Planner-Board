@@ -1,6 +1,8 @@
-import { UtensilsCrossed, GripVertical } from "lucide-react";
+import { UtensilsCrossed, GripVertical, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useDeleteMeal } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { MealWithIngredients } from "@workspace/api-client-react";
 
 interface RecipeCardProps {
@@ -9,6 +11,16 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ meal, onView }: RecipeCardProps) {
+  const queryClient = useQueryClient();
+  const deleteMutation = useDeleteMeal({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+      },
+    },
+  });
+
   const {
     attributes,
     listeners,
@@ -34,28 +46,39 @@ export function RecipeCard({ meal, onView }: RecipeCardProps) {
       ref={setNodeRef}
       style={style}
       className={`
-        group relative flex items-start gap-2 p-3 bg-card rounded-xl border border-border/50
-        shadow-sm hover:shadow-md transition-all duration-200 w-[280px]
+        group relative flex items-center gap-2 p-2.5 bg-card rounded-xl border border-border/50
+        shadow-sm hover:shadow-md transition-all duration-200 w-full
         ${isDragging ? "opacity-50 ring-2 ring-primary scale-[1.02] shadow-xl z-50" : ""}
       `}
     >
       <div
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
       >
         <GripVertical className="w-4 h-4" />
       </div>
 
       <div
-        className="flex-1 min-w-0 flex items-center gap-2 cursor-pointer pt-0.5"
+        className="flex-1 min-w-0 flex items-center gap-2 cursor-pointer"
         onClick={() => onView(meal)}
       >
         <UtensilsCrossed className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-        <h4 className="font-semibold text-sm text-card-foreground leading-tight truncate">
+        <span className="font-semibold text-sm text-card-foreground leading-tight truncate">
           {meal.name}
-        </h4>
+        </span>
       </div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteMutation.mutate({ id: meal.id });
+        }}
+        className="sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all flex-shrink-0"
+        aria-label={`Delete ${meal.name}`}
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
     </div>
   );
 }

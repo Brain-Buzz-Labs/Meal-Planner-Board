@@ -2,7 +2,7 @@
 
 ## Overview
 
-Meal Planning Board — a full-stack web application for planning Breakfast, Lunch, and Dinner for each day. Built with React + Vite frontend and Express 5 backend in a pnpm workspace monorepo.
+Meal Planning Board — a full-stack web application for planning dinner for each day. Built with React + Vite frontend and Express 5 backend in a pnpm workspace monorepo.
 
 ## Stack
 
@@ -41,16 +41,19 @@ artifacts-monorepo/
 
 ## Features
 
-- **Kanban-style board** with one column per day (7 days visible at a time)
-- **Meal slots**: Breakfast, Lunch, and Dinner per day
-- **Drag and drop** meals between slots and days
+- **Kanban-style board** with one column per day (7 days visible at a time), dinner only
+- **Responsive grid layout**: 2-col mobile, 3-col sm, 4-col md, 7-col lg (no horizontal scroll)
+- **Drag and drop** meals between days
 - **Unscheduled Meals** pool at the bottom for meal ideas saved for later
+- **Previously Made** recipe pool — drag to copy onto calendar, delete with trash icon
 - **Add/Edit/Delete** meals via dialog forms
 - **Light/Dark mode** toggle persisted to localStorage (dark: #292929/#343434)
-- **Date picker** in New Meal dialog with calendar popover and meal type selector
+- **Date picker** in New Meal dialog with calendar popover (meal type auto-set to dinner)
 - **Week navigation** with forward/backward arrows and "Today" button
 - **Today highlighting** — current date column is visually emphasized
+- **Mobile responsive** — touch-friendly controls, always-visible action buttons on small screens
 - **Database persistence** — all meals saved to PostgreSQL
+- **Toast notifications** via sonner for drag/drop feedback
 
 ## Database Schema
 
