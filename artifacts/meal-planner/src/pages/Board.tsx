@@ -60,7 +60,9 @@ export default function Board() {
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
 
   const { data: serverMeals = [], isLoading } = useListMeals();
-  const { data: pastMeals = [] } = useListPastMeals();
+  const { data: pastMeals = [] } = useListPastMeals({
+    query: { refetchOnWindowFocus: true, refetchInterval: 60_000 },
+  });
   const moveMutation = useMoveMeal();
   const createMutation = useCreateMeal();
 

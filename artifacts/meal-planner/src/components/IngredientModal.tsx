@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { X, Plus, UtensilsCrossed } from "lucide-react";
+import { X, Plus, UtensilsCrossed, Pencil } from "lucide-react";
 import {
   Meal,
   Ingredient,
   useListIngredients,
   useCreateIngredient,
   useDeleteIngredient,
+  useUpdateMeal,
   getListIngredientsQueryKey,
 } from "@workspace/api-client-react";
 import {
@@ -28,6 +29,59 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState("");
   const [newMeasurement, setNewMeasurement] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (meal) setDisplayName(meal.name);
+  }, [meal]);
+
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  useEffect(() => {
+    if (!isOpen) setIsEditingName(false);
+  }, [isOpen]);
+
+  const updateMealMutation = useUpdateMeal({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+        if (variables.data.name) setDisplayName(variables.data.name);
+        setIsEditingName(false);
+      },
+    },
+  });
+
+  const startEditingName = () => {
+    setEditedName(displayName);
+    setIsEditingName(true);
+  };
+
+  const saveName = () => {
+    const trimmed = editedName.trim();
+    if (!trimmed || !meal || trimmed === displayName) {
+      setIsEditingName(false);
+      return;
+    }
+    updateMealMutation.mutate({ id: meal.id, data: { name: trimmed } });
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveName();
+    } else if (e.key === "Escape") {
+      setIsEditingName(false);
+    }
+  };
 
   const mealId = meal?.id ?? 0;
   const queryKey = getListIngredientsQueryKey(mealId);
@@ -78,8 +132,27 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
       <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UtensilsCrossed className="w-5 h-5 text-primary" />
-            {meal?.name ?? "Meal"}
+            <UtensilsCrossed className="w-5 h-5 text-primary flex-shrink-0" />
+            {isEditingName ? (
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <Input
+                  ref={nameInputRef}
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={handleNameKeyDown}
+                  onBlur={saveName}
+                  className="h-8 text-lg font-semibold"
+                />
+              </div>
+            ) : (
+              <button
+                onClick={startEditingName}
+                className="flex items-center gap-1.5 group/name hover:text-primary transition-colors text-left min-w-0"
+              >
+                <span className="truncate">{displayName || "Meal"}</span>
+                <Pencil className="w-3.5 h-3.5 opacity-0 group-hover/name:opacity-100 transition-opacity flex-shrink-0 text-muted-foreground" />
+              </button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
