@@ -28,6 +28,12 @@ router.get("/meals/:id/ingredients", async (req, res) => {
   }
   const { id } = paramsParsed.data;
 
+  const meal = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
+  if (meal.length === 0) {
+    res.status(404).json({ error: "Meal not found" });
+    return;
+  }
+
   const ingredients = await db
     .select()
     .from(ingredientsTable)
@@ -45,7 +51,7 @@ router.post("/meals/:id/ingredients", async (req, res) => {
   }
   const { id } = paramsParsed.data;
 
-  const meal = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  const meal = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
   if (meal.length === 0) {
     res.status(404).json({ error: "Meal not found" });
     return;
@@ -77,6 +83,12 @@ router.delete("/meals/:id/ingredients/:ingredientId", async (req, res) => {
     return;
   }
   const { id, ingredientId } = paramsParsed.data;
+
+  const meal = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
+  if (meal.length === 0) {
+    res.status(404).json({ error: "Meal not found" });
+    return;
+  }
 
   const existing = await db
     .select()

@@ -19,12 +19,13 @@ import {
   horizontalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
-import { Plus, ChevronLeft, ChevronRight, Cat, Inbox, History, Sun, Moon, UtensilsCrossed } from "lucide-react";
-import { useListMeals, useListDays, useMoveMeal, useCreateMeal, useListPastMeals, Meal, MealType, MealWithIngredients } from "@workspace/api-client-react";
+import { Plus, ChevronLeft, ChevronRight, CookingPot, Inbox, History, Sun, Moon, UtensilsCrossed } from "lucide-react";
+import { useListMeals, useListDays, useMoveMeal, useCreateMeal, useListPastMeals, getListPastMealsQueryKey, Meal, MealType, MealWithIngredients } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+import { UserButton } from "@neondatabase/neon-js/auth/react/ui";
 import { MealCard } from "@/components/MealCard";
 import { MealFormDialog } from "@/components/MealFormDialog";
 import { IngredientModal } from "@/components/IngredientModal";
@@ -61,7 +62,7 @@ export default function Board() {
 
   const { data: serverMeals = [], isLoading } = useListMeals();
   const { data: pastMeals = [] } = useListPastMeals({
-    query: { refetchOnWindowFocus: true, refetchInterval: 60_000 },
+    query: { queryKey: getListPastMealsQueryKey(), refetchOnWindowFocus: true, refetchInterval: 60_000 },
   });
   const moveMutation = useMoveMeal();
   const createMutation = useCreateMeal();
@@ -305,8 +306,8 @@ export default function Board() {
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/20">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between shadow-sm gap-2">
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <Cat className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Cat Food</h1>
+          <CookingPot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Meal Planner</h1>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm flex-shrink-0">
@@ -333,14 +334,15 @@ export default function Board() {
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-8 w-8 sm:h-9 sm:w-9">
             {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/70" />}
           </Button>
-          <Button 
-            onClick={() => openAddDialog()} 
+          <Button
+            onClick={() => openAddDialog()}
             size="sm"
             className="rounded-xl font-medium bg-foreground text-background hover:bg-foreground/90 shadow-md transition-transform active:scale-95 text-xs sm:text-sm px-2 sm:px-4"
           >
             <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">New Meal</span>
           </Button>
+          <UserButton />
         </div>
       </header>
 

@@ -27,8 +27,8 @@ function formatMeal(m: typeof mealsTable.$inferSelect) {
 
 type MealType = (typeof mealsTable.$inferSelect)["mealType"];
 
-async function getNextPosition(scheduledDate: string | null, mealType: MealType): Promise<number> {
-  const conditions = [];
+async function getNextPosition(userId: string, scheduledDate: string | null, mealType: MealType): Promise<number> {
+  const conditions = [eq(mealsTable.userId, userId)];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
   } else {
@@ -48,8 +48,8 @@ async function getNextPosition(scheduledDate: string | null, mealType: MealType)
   return (result[0]?.maxPos ?? -1) + 1;
 }
 
-async function reindexSlot(scheduledDate: string | null, mealType: MealType) {
-  const conditions = [];
+async function reindexSlot(userId: string, scheduledDate: string | null, mealType: MealType) {
+  const conditions = [eq(mealsTable.userId, userId)];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
   } else {
@@ -74,8 +74,8 @@ async function reindexSlot(scheduledDate: string | null, mealType: MealType) {
   }
 }
 
-async function reindexSlotWithInsert(scheduledDate: string | null, mealType: MealType, movedMeal: typeof mealsTable.$inferSelect, targetPosition: number) {
-  const conditions = [];
+async function reindexSlotWithInsert(userId: string, scheduledDate: string | null, mealType: MealType, movedMeal: typeof mealsTable.$inferSelect, targetPosition: number) {
+  const conditions = [eq(mealsTable.userId, userId)];
   if (scheduledDate) {
     conditions.push(eq(mealsTable.scheduledDate, scheduledDate));
   } else {
@@ -104,13 +104,13 @@ async function reindexSlotWithInsert(scheduledDate: string | null, mealType: Mea
   }
 }
 
-router.get("/meals/past", async (_req, res) => {
+router.get("/meals/past", async (req, res) => {
   const today = new Date().toISOString().split("T")[0];
 
   const pastMeals = await db
     .select()
     .from(mealsTable)
-    .where(lt(mealsTable.scheduledDate, today))
+    .where(and(eq(mealsTable.userId, req.userId), lt(mealsTable.scheduledDate, today)))
     .orderBy(mealsTable.scheduledDate);
 
   const seen = new Map<string, typeof pastMeals[0]>();
@@ -148,10 +148,11 @@ router.get("/meals/past", async (_req, res) => {
   res.json(result);
 });
 
-router.get("/meals", async (_req, res) => {
+router.get("/meals", async (req, res) => {
   const meals = await db
     .select()
     .from(mealsTable)
+    .where(eq(mealsTable.userId, req.userId))
     .orderBy(mealsTable.position);
   res.json(meals.map(formatMeal));
 });
@@ -166,11 +167,12 @@ router.post("/meals", async (req, res) => {
 
   const sd = body.scheduledDate ?? null;
   const mt = body.mealType ?? null;
-  const nextPos = await getNextPosition(sd, mt);
+  const nextPos = await getNextPosition(req.userId, sd, mt);
 
   const [meal] = await db
     .insert(mealsTable)
     .values({
+      userId: req.userId,
       name: body.name,
       description: body.description ?? null,
       scheduledDate: sd,
@@ -196,7 +198,7 @@ router.put("/meals/:id", async (req, res) => {
   }
   const body = bodyParsed.data;
 
-  const existing = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  const existing = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
   if (existing.length === 0) {
     res.status(404).json({ error: "Meal not found" });
     return;
@@ -213,7 +215,7 @@ router.put("/meals/:id", async (req, res) => {
   const [meal] = await db
     .update(mealsTable)
     .set(updates)
-    .where(eq(mealsTable.id, id))
+    .where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)))
     .returning();
 
   const newDate = meal.scheduledDate;
@@ -222,10 +224,10 @@ router.put("/meals/:id", async (req, res) => {
   const posChanged = body.position !== undefined;
 
   if (slotChanged) {
-    await reindexSlot(oldMeal.scheduledDate, oldMeal.mealType);
-    await reindexSlotWithInsert(newDate, newType, meal, meal.position);
+    await reindexSlot(req.userId, oldMeal.scheduledDate, oldMeal.mealType);
+    await reindexSlotWithInsert(req.userId, newDate, newType, meal, meal.position);
   } else if (posChanged) {
-    await reindexSlotWithInsert(newDate, newType, meal, meal.position);
+    await reindexSlotWithInsert(req.userId, newDate, newType, meal, meal.position);
   }
 
   const [updated] = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
@@ -240,14 +242,14 @@ router.delete("/meals/:id", async (req, res) => {
   }
   const { id } = paramsParsed.data;
 
-  const existing = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  const existing = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
   if (existing.length === 0) {
     res.status(404).json({ error: "Meal not found" });
     return;
   }
   const meal = existing[0];
-  await db.delete(mealsTable).where(eq(mealsTable.id, id));
-  await reindexSlot(meal.scheduledDate, meal.mealType);
+  await db.delete(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
+  await reindexSlot(req.userId, meal.scheduledDate, meal.mealType);
   res.status(204).send();
 });
 
@@ -293,7 +295,7 @@ router.patch("/meals/:id/move", async (req, res) => {
   }
   const body = bodyParsed.data;
 
-  const existing = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+  const existing = await db.select().from(mealsTable).where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)));
   if (existing.length === 0) {
     res.status(404).json({ error: "Meal not found" });
     return;
@@ -310,15 +312,15 @@ router.patch("/meals/:id/move", async (req, res) => {
       mealType: newType,
       position: newPosition,
     })
-    .where(eq(mealsTable.id, id))
+    .where(and(eq(mealsTable.id, id), eq(mealsTable.userId, req.userId)))
     .returning();
 
   const sameSlot = oldMeal.scheduledDate === newDate && oldMeal.mealType === newType;
   if (!sameSlot) {
-    await reindexSlot(oldMeal.scheduledDate, oldMeal.mealType);
+    await reindexSlot(req.userId, oldMeal.scheduledDate, oldMeal.mealType);
   }
 
-  await reindexSlotWithInsert(newDate, newType, meal, newPosition);
+  await reindexSlotWithInsert(req.userId, newDate, newType, meal, newPosition);
 
   const [updated] = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
   res.json(formatMeal(updated));

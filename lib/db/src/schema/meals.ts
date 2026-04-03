@@ -7,6 +7,7 @@ export const mealTypeEnum = ["breakfast", "lunch", "dinner"] as const;
 
 export const mealsTable = pgTable("meals", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   name: text("name").notNull(),
   description: text("description"),
   scheduledDate: date("scheduled_date"),

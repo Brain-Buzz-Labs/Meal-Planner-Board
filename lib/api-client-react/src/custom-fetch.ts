@@ -271,6 +271,12 @@ async function parseSuccessBody(
   }
 }
 
+let tokenProvider: (() => Promise<string | null>) | null = null;
+
+export function setTokenProvider(provider: () => Promise<string | null>) {
+  tokenProvider = provider;
+}
+
 export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
@@ -284,6 +290,13 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+
+  if (tokenProvider && !headers.has("authorization")) {
+    const token = await tokenProvider();
+    if (token) {
+      headers.set("authorization", `Bearer ${token}`);
+    }
+  }
 
   if (
     typeof init.body === "string" &&
