@@ -33,7 +33,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
   const queryKey = getListIngredientsQueryKey(mealId);
 
   const { data: ingredients = [], isLoading } = useListIngredients(mealId, {
-    query: { enabled: isOpen && mealId > 0 },
+    query: { queryKey, enabled: isOpen && mealId > 0 },
   });
 
   const createMutation = useCreateIngredient({
