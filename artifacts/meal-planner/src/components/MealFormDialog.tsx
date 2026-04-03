@@ -6,10 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Meal, MealType, useCreateMeal, useUpdateMeal } from "@workspace/api-client-react";
+import { CalendarIcon, X, Plus } from "lucide-react";
+import { Meal, MealType, useCreateMeal, useUpdateMeal, createIngredient } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
+
+interface PendingIngredient {
+  name: string;
+  measurement: string | null;
+}
 
 interface MealFormDialogProps {
   isOpen: boolean;
@@ -30,10 +35,23 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedMealType, setSelectedMealType] = useState<string>("dinner");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([]);
+  const [newIngName, setNewIngName] = useState("");
+  const [newIngMeasurement, setNewIngMeasurement] = useState("");
+  const [isSavingIngredients, setIsSavingIngredients] = useState(false);
 
   const createMutation = useCreateMeal({
     mutation: {
-      onSuccess: () => {
+      onSuccess: async (meal) => {
+        if (pendingIngredients.length > 0) {
+          setIsSavingIngredients(true);
+          await Promise.all(
+            pendingIngredients.map((ing) =>
+              createIngredient(meal.id, { name: ing.name, measurement: ing.measurement })
+            )
+          );
+          setIsSavingIngredients(false);
+        }
         queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
         queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
         onClose();
@@ -63,6 +81,9 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
         setDescription("");
         setSelectedDate(defaultDate ? parseDateString(defaultDate) : undefined);
         setSelectedMealType(defaultMealType || "dinner");
+        setPendingIngredients([]);
+        setNewIngName("");
+        setNewIngMeasurement("");
       }
     }
   }, [isOpen, initialData, defaultDate, defaultMealType]);
@@ -97,7 +118,22 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     }
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending || isSavingIngredients;
+
+  const handleAddIngredient = () => {
+    const trimmed = newIngName.trim();
+    if (!trimmed) return;
+    setPendingIngredients((prev) => [...prev, { name: trimmed, measurement: newIngMeasurement.trim() || null }]);
+    setNewIngName("");
+    setNewIngMeasurement("");
+  };
+
+  const handleIngredientKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddIngredient();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -180,6 +216,70 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
             </div>
 
           </div>
+
+          {!initialData && (
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Ingredients</Label>
+
+              {pendingIngredients.length > 0 && (
+                <ul className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                  {pendingIngredients.map((ing, idx) => (
+                    <li key={idx} className="flex items-center justify-between gap-2 px-3 py-2 bg-secondary/50 rounded-lg group">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-sm text-foreground">{ing.name}</span>
+                        {ing.measurement && (
+                          <span className="text-xs text-muted-foreground ml-2">({ing.measurement})</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPendingIngredients((prev) => prev.filter((_, i) => i !== idx))}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                        aria-label={`Remove ${ing.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Ingredient</label>
+                  <Input
+                    placeholder="e.g. Chicken breast"
+                    value={newIngName}
+                    onChange={(e) => setNewIngName(e.target.value)}
+                    onKeyDown={handleIngredientKeyDown}
+                    className="h-9 bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary rounded-xl"
+                  />
+                </div>
+                <div className="w-28">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Measurement</label>
+                  <Input
+                    placeholder="e.g. 2 cups"
+                    value={newIngMeasurement}
+                    onChange={(e) => setNewIngMeasurement(e.target.value)}
+                    onKeyDown={handleIngredientKeyDown}
+                    className="h-9 bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary rounded-xl"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleAddIngredient}
+                  disabled={!newIngName.trim()}
+                  className="h-9 px-3 rounded-xl"
+                  aria-label="Add ingredient"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
             <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl font-medium">
