@@ -1,9 +1,9 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { NeonAuthUIProvider, SignedIn, RedirectToSignIn } from "@neondatabase/neon-js/auth/react/ui";
+import { NeonAuthUIProvider, SignedIn, SignedOut, AuthLoading, AuthView } from "@neondatabase/neon-js/auth/react/ui";
 import { authClient } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import Board from "@/pages/Board";
@@ -17,17 +17,45 @@ const queryClient = new QueryClient({
   },
 });
 
-function Router() {
+function AuthPage() {
+  const pathname = window.location.pathname.replace(/^\/auth\//, "");
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <AuthView pathname={pathname} />
+    </div>
+  );
+}
+
+function ProtectedRoutes() {
   return (
     <>
+      <AuthLoading>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-muted-foreground font-medium">Loading...</p>
+          </div>
+        </div>
+      </AuthLoading>
       <SignedIn>
         <Switch>
           <Route path="/" component={Board} />
           <Route component={NotFound} />
         </Switch>
       </SignedIn>
-      <RedirectToSignIn />
+      <SignedOut>
+        <Redirect to="/auth/sign-in" />
+      </SignedOut>
     </>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/auth/:rest*" component={AuthPage} />
+      <Route component={ProtectedRoutes} />
+    </Switch>
   );
 }
 
