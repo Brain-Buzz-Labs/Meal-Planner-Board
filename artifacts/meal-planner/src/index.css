@@ -151,12 +151,18 @@
   box-shadow: none !important;
 }
 
-/* Remove background from UserButton in header */
+/* Remove background and fix text color for UserButton in header */
 .user-button-wrapper button,
 .user-button-wrapper > div,
 .user-button-wrapper > div > button {
   background: transparent !important;
   background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.user-button-wrapper svg {
+  color: hsl(var(--foreground)) !important;
+  stroke: hsl(var(--foreground)) !important;
 }
 
 /* Center initials in UserButton avatar */
