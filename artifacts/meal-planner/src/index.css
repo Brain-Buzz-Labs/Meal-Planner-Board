@@ -139,3 +139,17 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/50;
 }
+
+/* Neon Auth UI overrides */
+.auth-page-wrapper form {
+  padding: 1.5rem;
+}
+
+/* Ensure the password visibility toggle is vertically centered */
+.auth-page-wrapper .relative button[type="button"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  transform: translateY(-50%);
+}

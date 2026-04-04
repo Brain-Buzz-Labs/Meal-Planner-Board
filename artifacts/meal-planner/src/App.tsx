@@ -20,8 +20,8 @@ const queryClient = new QueryClient({
 function AuthPage() {
   const pathname = window.location.pathname.replace(/^\/auth\//, "");
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
-      <div className="w-full max-w-md">
+    <div className="auth-page-wrapper min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-lg p-6 sm:p-8">
         <AuthView pathname={pathname} />
       </div>
     </div>
