@@ -159,6 +159,15 @@
   background-color: transparent !important;
 }
 
+/* Center initials in UserButton avatar */
+.user-button-wrapper span[data-slot="avatar-fallback"],
+.user-button-wrapper [class*="avatar"] span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
 /* Ensure the password visibility toggle is vertically centered */
 .auth-page-wrapper .relative button[type="button"] {
   display: flex;
