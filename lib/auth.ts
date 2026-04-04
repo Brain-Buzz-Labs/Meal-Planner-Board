@@ -9,7 +9,7 @@ const authConfigured =
  * Nicole shares Eric's dashboard.
  */
 const USER_ID_ALIASES: Record<string, string> = {
-  "395b063b-c2ee-403d-b82a-ac0d81c50eca": "5fce413f-5474-4600-9af6-8678bf35bd51",
+  "50a8c2f5-00ee-40ef-9d0d-73e32d2ac11b": "5fce413f-5474-4600-9af6-8678bf35bd51",
 };
 
 function resolveUserId(userId: string): string {
