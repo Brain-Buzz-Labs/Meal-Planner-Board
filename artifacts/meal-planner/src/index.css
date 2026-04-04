@@ -177,7 +177,8 @@
 }
 
 /* Ensure the password visibility toggle is vertically centered */
-.auth-page-wrapper .relative button[type="button"] {
+.auth-page-wrapper .relative button[type="button"],
+.account-page .relative button[type="button"] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,9 +186,34 @@
   transform: translateY(-50%);
 }
 
+/* Inset toggle from the input border (Neon defaults flush to the edge on account forms) */
+.neon-auth-ui .account-page .relative button[type="button"] {
+  position: absolute;
+  right: 0.75rem;
+}
+
+/* Account password fields: minimal left padding; right padding = toggle inset + button width + 10px text gap */
+.neon-auth-ui .account-page .relative:has(button[type="button"]) input[data-slot="form-control"] {
+  padding-left: 1px;
+  padding-right: calc(0.75rem + 2.25rem + 10px);
+}
+
 /* Neon AccountView: reduce space between sidebar and main content (default md:gap-12) */
 @media (min-width: 768px) {
   .neon-auth-ui [class*="md:gap-12"] {
     gap: 2rem !important; /* gap-8 */
   }
+}
+
+/* Account settings: horizontal padding on Neon Auth cards (profile form, Sessions, etc.) */
+/* DOM: #root > .neon-auth-ui > .account-page > … > [data-slot="card"] */
+.neon-auth-ui .account-page [data-slot="card"] {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Account settings: vertical spacing on Neon profile card Save (submit) buttons */
+.neon-auth-ui .account-page button[type="submit"][data-slot="button"] {
+  margin-top: 24px;
+  margin-bottom: 24px;
 }

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx ./src/index.ts",
+    "dev": "NODE_ENV=development tsx --env-file=../../.env ./src/index.ts",
     "build": "tsx ./build.ts",
     "build:vercel": "esbuild src/app.ts --bundle --platform=node --format=cjs --outfile=../../api/_handler.cjs --packages=bundle",
     "typecheck": "tsc -p tsconfig.json --noEmit"

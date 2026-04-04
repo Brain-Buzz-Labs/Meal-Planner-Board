@@ -1,6 +1,8 @@
 import app from "./app";
 
-const rawPort = process.env["PORT"];
+const rawPort =
+  process.env["PORT"] ??
+  (process.env.NODE_ENV === "development" ? "3000" : undefined);
 
 if (!rawPort) {
   throw new Error(

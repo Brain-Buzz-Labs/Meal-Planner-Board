@@ -5,9 +5,14 @@ import path from "path";
 
 const port = Number(process.env.PORT) || 5173;
 const basePath = process.env.BASE_PATH || "/";
+const apiProxyTarget =
+  process.env.VITE_API_PROXY_TARGET?.replace(/\/$/, "") ||
+  "http://127.0.0.1:3000";
 
 export default defineConfig({
   base: basePath,
+  // Load `.env` from monorepo root (`Meal-Planner-Board/.env`), not only `artifacts/meal-planner/`.
+  envDir: path.resolve(import.meta.dirname, "..", ".."),
   plugins: [
     react(),
     tailwindcss(),
@@ -44,6 +49,12 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: apiProxyTarget,
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

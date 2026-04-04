@@ -31,7 +31,7 @@ function AuthPage() {
 function AccountPage() {
   const pathname = window.location.pathname.replace(/^\/account\//, "");
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
+    <div className="account-page min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
       <div className="mx-auto max-w-5xl">
         <AccountView pathname={pathname} />
       </div>
@@ -84,8 +84,34 @@ function Router() {
 }
 
 function App() {
+  const authUrl = import.meta.env.VITE_NEON_AUTH_URL;
+  if (!authUrl) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6 text-foreground">
+        <div className="max-w-md space-y-3 text-center">
+          <h1 className="text-lg font-semibold">Missing auth configuration</h1>
+          <p className="text-sm text-muted-foreground">
+            Add{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+              VITE_NEON_AUTH_URL
+            </code>{" "}
+            to{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+              artifacts/meal-planner/.env
+            </code>{" "}
+            (your Neon project Auth URL, e.g.{" "}
+            <span className="whitespace-normal break-all text-xs">
+              https://…neon.tech/auth
+            </span>
+            ).
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <NeonAuthUIProvider authClient={authClient}>
+    <NeonAuthUIProvider authClient={authClient} baseURL={authUrl}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
