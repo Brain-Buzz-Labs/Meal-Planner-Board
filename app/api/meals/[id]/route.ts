@@ -37,26 +37,31 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   if (data.mealType !== undefined) updates.mealType = data.mealType;
   if (data.position !== undefined) updates.position = data.position;
 
-  const [meal] = await db
-    .update(mealsTable)
-    .set(updates)
-    .where(and(eq(mealsTable.id, id), eq(mealsTable.userId, userId)))
-    .returning();
+  try {
+    const [meal] = await db
+      .update(mealsTable)
+      .set(updates)
+      .where(and(eq(mealsTable.id, id), eq(mealsTable.userId, userId)))
+      .returning();
 
-  const newDate = meal.scheduledDate;
-  const newType = meal.mealType;
-  const slotChanged = oldMeal.scheduledDate !== newDate || oldMeal.mealType !== newType;
-  const posChanged = data.position !== undefined;
+    const newDate = meal.scheduledDate;
+    const newType = meal.mealType;
+    const slotChanged = oldMeal.scheduledDate !== newDate || oldMeal.mealType !== newType;
+    const posChanged = data.position !== undefined;
 
-  if (slotChanged) {
-    await reindexSlot(userId, oldMeal.scheduledDate, oldMeal.mealType);
-    await reindexSlotWithInsert(userId, newDate, newType, meal, meal.position);
-  } else if (posChanged) {
-    await reindexSlotWithInsert(userId, newDate, newType, meal, meal.position);
+    if (slotChanged) {
+      await reindexSlot(userId, oldMeal.scheduledDate, oldMeal.mealType);
+      await reindexSlotWithInsert(userId, newDate, newType, meal, meal.position);
+    } else if (posChanged) {
+      await reindexSlotWithInsert(userId, newDate, newType, meal, meal.position);
+    }
+
+    const [updated] = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
+    return NextResponse.json(formatMeal(updated));
+  } catch (err) {
+    console.error("Failed to update meal:", err);
+    return NextResponse.json({ error: "Failed to update meal", details: String(err) }, { status: 500 });
   }
-
-  const [updated] = await db.select().from(mealsTable).where(eq(mealsTable.id, id));
-  return NextResponse.json(formatMeal(updated));
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {

@@ -31,19 +31,25 @@ export async function POST(request: NextRequest) {
   const data = parsed.data;
   const sd = data.scheduledDate ?? null;
   const mt = (data.mealType ?? null) as MealType | null;
-  const nextPos = await getNextPosition(userId, sd, mt);
 
-  const [meal] = await db
-    .insert(mealsTable)
-    .values({
-      userId,
-      name: data.name,
-      description: data.description ?? null,
-      scheduledDate: sd,
-      mealType: mt,
-      position: nextPos,
-    })
-    .returning();
+  try {
+    const nextPos = await getNextPosition(userId, sd, mt);
 
-  return NextResponse.json(formatMeal(meal), { status: 201 });
+    const [meal] = await db
+      .insert(mealsTable)
+      .values({
+        userId,
+        name: data.name,
+        description: data.description ?? null,
+        scheduledDate: sd,
+        mealType: mt,
+        position: nextPos,
+      })
+      .returning();
+
+    return NextResponse.json(formatMeal(meal), { status: 201 });
+  } catch (err) {
+    console.error("Failed to create meal:", err);
+    return NextResponse.json({ error: "Failed to create meal", details: String(err) }, { status: 500 });
+  }
 }

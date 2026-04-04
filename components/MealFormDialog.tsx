@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, X, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { useCreateMeal, useUpdateMeal } from "@/hooks/use-meals";
 import { createIngredientDirect } from "@/hooks/use-ingredients";
 import { format, parseISO } from "date-fns";
@@ -65,17 +66,24 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
     const mealTypeValue = "dinner";
 
     if (initialData) {
-      updateMutation.mutate({
-        id: initialData.id,
-        data: {
-          name,
-          description: description || null,
-          scheduledDate: dateValue,
-          mealType: mealTypeValue,
-          position: initialData.position,
+      updateMutation.mutate(
+        {
+          id: initialData.id,
+          data: {
+            name,
+            description: description || null,
+            scheduledDate: dateValue,
+            mealType: mealTypeValue,
+            position: initialData.position,
+          },
         },
-      });
-      onClose();
+        {
+          onSuccess: () => onClose(),
+          onError: (err) => {
+            toast.error(err instanceof Error ? err.message : "Failed to update meal");
+          },
+        }
+      );
     } else {
       createMutation.mutate(
         {
@@ -96,6 +104,9 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
               setIsSavingIngredients(false);
             }
             onClose();
+          },
+          onError: (err) => {
+            toast.error(err instanceof Error ? err.message : "Failed to create meal");
           },
         }
       );

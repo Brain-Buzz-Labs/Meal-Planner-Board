@@ -6,7 +6,13 @@ import type { FormattedMeal } from "@/lib/db/helpers";
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
-    throw new Error(`${res.status}: ${res.statusText}`);
+    let message = `${res.status}: ${res.statusText}`;
+    try {
+      const body = await res.json();
+      if (body?.details) message = `${message} — ${body.details}`;
+      else if (body?.error) message = `${message} — ${body.error}`;
+    } catch {}
+    throw new Error(message);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
