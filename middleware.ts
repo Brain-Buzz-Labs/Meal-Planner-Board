@@ -15,6 +15,6 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   // Run on everything except Next internals, static assets, the auth UI routes,
-  // and the auth API (which must stay reachable for sign-in itself).
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|auth|api/auth).*)"],
+  // and all API routes (they handle auth themselves and must return JSON, not redirects).
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|auth|api).*)"],
 };
