@@ -184,3 +184,10 @@
   top: 50%;
   transform: translateY(-50%);
 }
+
+/* Neon AccountView: reduce space between sidebar and main content (default md:gap-12) */
+@media (min-width: 768px) {
+  .neon-auth-ui [class*="md:gap-12"] {
+    gap: 2rem !important; /* gap-8 */
+  }
+}

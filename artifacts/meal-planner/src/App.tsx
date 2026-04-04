@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { NeonAuthUIProvider, SignedIn, SignedOut, AuthLoading, AuthView } from "@neondatabase/neon-js/auth/react/ui";
+import { NeonAuthUIProvider, SignedIn, SignedOut, AuthLoading, AuthView, AccountView } from "@neondatabase/neon-js/auth/react/ui";
 import { authClient } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import Board from "@/pages/Board";
@@ -28,7 +28,18 @@ function AuthPage() {
   );
 }
 
-function ProtectedRoutes() {
+function AccountPage() {
+  const pathname = window.location.pathname.replace(/^\/account\//, "");
+  return (
+    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
+      <div className="mx-auto max-w-5xl">
+        <AccountView pathname={pathname} />
+      </div>
+    </div>
+  );
+}
+
+function ProtectedContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AuthLoading>
@@ -40,10 +51,7 @@ function ProtectedRoutes() {
         </div>
       </AuthLoading>
       <SignedIn>
-        <Switch>
-          <Route path="/" component={Board} />
-          <Route component={NotFound} />
-        </Switch>
+        {children}
       </SignedIn>
       <SignedOut>
         <Redirect to="/auth/sign-in" />
@@ -56,7 +64,21 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth/:rest*" component={AuthPage} />
-      <Route component={ProtectedRoutes} />
+      <Route path="/account/:rest*">
+        <ProtectedContent>
+          <AccountPage />
+        </ProtectedContent>
+      </Route>
+      <Route path="/">
+        <ProtectedContent>
+          <Board />
+        </ProtectedContent>
+      </Route>
+      <Route>
+        <ProtectedContent>
+          <NotFound />
+        </ProtectedContent>
+      </Route>
     </Switch>
   );
 }
