@@ -151,6 +151,14 @@
   box-shadow: none !important;
 }
 
+/* Remove background from UserButton in header */
+.user-button-wrapper button,
+.user-button-wrapper > div,
+.user-button-wrapper > div > button {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 /* Ensure the password visibility toggle is vertically centered */
 .auth-page-wrapper .relative button[type="button"] {
   display: flex;

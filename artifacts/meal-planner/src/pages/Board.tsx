@@ -342,7 +342,9 @@ export default function Board() {
             <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">New Meal</span>
           </Button>
-          <UserButton />
+          <div className="user-button-wrapper">
+            <UserButton />
+          </div>
         </div>
       </header>
 
