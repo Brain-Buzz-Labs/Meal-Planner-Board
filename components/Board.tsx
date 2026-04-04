@@ -313,7 +313,7 @@ export default function Board() {
               <Plus className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">New Meal</span>
             </Button>
-            {authContext && <UserButton />}
+            {authContext && <UserButton size="icon" />}
           </div>
 
           <div className="w-full flex justify-center order-last sm:w-auto sm:order-2 sm:flex-1 sm:justify-center sm:min-w-0">
