@@ -160,12 +160,14 @@
 }
 
 /* Center initials in UserButton avatar */
-.user-button-wrapper span[data-slot="avatar-fallback"],
-.user-button-wrapper [class*="avatar"] span {
-  display: flex !important;
+.user-button-wrapper [data-slot="avatar"] {
   align-items: center !important;
   justify-content: center !important;
-  line-height: 1 !important;
+}
+
+.user-button-wrapper [data-slot="avatar-fallback"] {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Ensure the password visibility toggle is vertically centered */
