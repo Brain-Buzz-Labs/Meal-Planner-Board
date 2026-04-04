@@ -86,4 +86,5 @@ body {
 
 .neon-auth-ui [data-slot="dropdown-menu-trigger"] {
   background: transparent !important;
+  color: var(--foreground) !important;
 }
