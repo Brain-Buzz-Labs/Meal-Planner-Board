@@ -145,6 +145,12 @@
   padding: 1.5rem;
 }
 
+/* Remove the inner card border from Neon Auth UI */
+.auth-page-wrapper > div > div {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 /* Ensure the password visibility toggle is vertically centered */
 .auth-page-wrapper .relative button[type="button"] {
   display: flex;
