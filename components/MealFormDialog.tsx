@@ -121,7 +121,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-2xl overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-2xl shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
         <DialogHeader className="pt-2">
           <DialogTitle className="text-2xl font-bold text-foreground">
             {initialData ? "Edit Meal" : "Add New Meal"}
@@ -141,7 +141,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
-              className="bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary text-base py-6 rounded-xl"
+              className="bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary text-base py-3 sm:py-6 rounded-xl"
             />
           </div>
           <div className="space-y-2">
@@ -155,7 +155,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div>
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Date</Label>
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -227,7 +227,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
                 </ul>
               )}
 
-              <div className="flex gap-2 items-end">
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
                 <div className="flex-1">
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Ingredient</label>
                   <Input
@@ -238,7 +238,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
                     className="h-9 bg-secondary/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary rounded-xl"
                   />
                 </div>
-                <div className="w-28">
+                <div className="w-full sm:w-28">
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Measurement</label>
                   <Input
                     placeholder="e.g. 2 cups"
@@ -254,7 +254,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
                   variant="secondary"
                   onClick={handleAddIngredient}
                   disabled={!newIngName.trim()}
-                  className="h-9 px-3 rounded-xl"
+                  className="h-9 px-3 rounded-xl w-full sm:w-auto"
                   aria-label="Add ingredient"
                 >
                   <Plus className="w-4 h-4 mr-1" />

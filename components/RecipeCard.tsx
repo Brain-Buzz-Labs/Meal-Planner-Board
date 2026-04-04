@@ -44,7 +44,7 @@ export function RecipeCard({ meal, onView }: RecipeCardProps) {
       <div
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
+        className="mt-1 p-1 -m-1 sm:p-0 sm:m-0 sm:mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
       >
         <GripVertical className="w-4 h-4" />
       </div>

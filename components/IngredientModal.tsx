@@ -104,7 +104,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UtensilsCrossed className="w-5 h-5 text-primary flex-shrink-0" />
@@ -158,7 +158,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
             </ul>
           )}
 
-          <div className="flex gap-2 items-end border-t border-border pt-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end border-t border-border pt-3">
             <div className="flex-1">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Ingredient</label>
               <Input
@@ -169,7 +169,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
                 className="h-9"
               />
             </div>
-            <div className="w-32">
+            <div className="w-full sm:w-32">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Measurement</label>
               <Input
                 placeholder="e.g. 2 cups"
@@ -183,7 +183,7 @@ export function IngredientModal({ meal, isOpen, onClose }: IngredientModalProps)
               size="sm"
               onClick={handleAdd}
               disabled={!newName.trim() || createMutation.isPending}
-              className="h-9 px-3"
+              className="h-9 px-3 w-full sm:w-auto"
               aria-label="Add ingredient"
             >
               <Plus className="w-4 h-4 mr-1" />

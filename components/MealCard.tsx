@@ -54,7 +54,7 @@ export function MealCard({ meal, onEdit, onView }: MealCardProps) {
       <div
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
+        className="mt-1 p-1 -m-1 sm:p-0 sm:m-0 sm:mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
       >
         <GripVertical className="w-4 h-4" />
       </div>
@@ -75,7 +75,7 @@ export function MealCard({ meal, onEdit, onView }: MealCardProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-all">
+          <button className="sm:opacity-0 sm:group-hover:opacity-100 p-2 sm:p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-all">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </DropdownMenuTrigger>

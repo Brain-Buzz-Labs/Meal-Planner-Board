@@ -31,7 +31,7 @@ export function Providers({
   const content = (
     <QueryClientProvider client={queryClient}>
       {children}
-      <SonnerToaster position="bottom-right" richColors />
+      <SonnerToaster position="bottom-center" richColors />
     </QueryClientProvider>
   );
 

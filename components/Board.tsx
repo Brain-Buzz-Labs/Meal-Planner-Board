@@ -7,6 +7,7 @@ import {
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragStartEvent,
@@ -87,6 +88,9 @@ export default function Board() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -296,11 +300,11 @@ export default function Board() {
           <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Meal Planner</h1>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm min-w-0">
           <Button variant="ghost" size="icon" onClick={() => setStartDate(subDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
             <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
-          <span className="font-semibold text-xs sm:text-sm px-1 sm:px-3 text-center whitespace-nowrap">
+          <span className="font-semibold text-xs sm:text-sm px-1 sm:px-3 text-center whitespace-nowrap truncate min-w-0">
             {format(startDate, "MMM d")} - {format(addDays(startDate, 6), "MMM d")}
           </span>
           <Button variant="ghost" size="icon" onClick={() => setStartDate(addDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
@@ -341,7 +345,7 @@ export default function Board() {
           onDragEnd={onDragEnd}
         >
           <div className="flex-1 overflow-auto p-3 sm:p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
               {days.map((day) => {
                 const isToday = isSameDay(day, new Date());
                 const dateStr = format(day, "yyyy-MM-dd");
@@ -467,7 +471,7 @@ export default function Board() {
 
           <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
             {activeMeal ? (
-              <div className="opacity-90 rotate-2 scale-105 shadow-2xl z-50 rounded-xl cursor-grabbing max-w-[200px]">
+              <div className="opacity-90 rotate-2 scale-105 shadow-2xl z-50 rounded-xl cursor-grabbing w-[85vw] max-w-[280px]">
                 <MealCard meal={activeMeal} onEdit={() => {}} />
               </div>
             ) : null}
