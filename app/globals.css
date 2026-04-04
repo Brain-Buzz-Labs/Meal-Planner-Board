@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@neondatabase/auth/ui/tailwind";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -81,4 +82,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.neon-auth-ui [data-slot="dropdown-menu-trigger"] {
+  background: transparent !important;
 }

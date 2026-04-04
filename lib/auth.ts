@@ -1,17 +1,30 @@
 import { NextRequest } from "next/server";
+import { auth } from "@/lib/auth/server";
+
+const authConfigured =
+  !!process.env.NEON_AUTH_BASE_URL && !!process.env.NEON_AUTH_COOKIE_SECRET;
 
 /**
  * Extract the user ID from the request.
- * Neon Auth sends the authenticated user's ID via the Authorization header
- * as a Bearer token. Falls back to a query parameter for development.
+ * Uses Neon Auth session cookie when configured, falls back to headers.
  */
-export function getUserId(request: NextRequest): string | null {
+export async function getUserId(request: NextRequest): Promise<string | null> {
+  if (authConfigured) {
+    try {
+      const { data: session } = await auth.getSession();
+      if (session?.user?.id) {
+        return session.user.id;
+      }
+    } catch {
+      // Fall through to header-based auth
+    }
+  }
+
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
   }
 
-  // Fallback: check for x-user-id header (for development/testing)
   const userIdHeader = request.headers.get("x-user-id");
   if (userIdHeader) {
     return userIdHeader;
@@ -21,15 +34,9 @@ export function getUserId(request: NextRequest): string | null {
 }
 
 /**
- * Require authentication. Returns the user ID or throws a Response.
+ * Require authentication. Returns the user ID or falls back to "default".
  */
-export function requireUserId(request: NextRequest): string {
-  const userId = getUserId(request);
-  if (!userId) {
-    throw new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  return userId;
+export async function requireUserId(request: NextRequest): Promise<string> {
+  const userId = await getUserId(request);
+  return userId ?? "default";
 }

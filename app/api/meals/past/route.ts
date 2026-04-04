@@ -5,7 +5,7 @@ import { requireUserId } from "@/lib/auth";
 import { formatMeal } from "@/lib/db/helpers";
 
 export async function GET(request: NextRequest) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const today = new Date().toISOString().split("T")[0];
 
   const pastMeals = await db

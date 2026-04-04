@@ -8,7 +8,7 @@ import { formatMeal, reindexSlot, reindexSlotWithInsert } from "@/lib/db/helpers
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {
@@ -58,7 +58,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {

@@ -7,7 +7,7 @@ import { formatMeal, getNextPosition } from "@/lib/db/helpers";
 import type { MealType } from "@/lib/db/schema";
 
 export async function GET(request: NextRequest) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const meals = await db
     .select()
     .from(mealsTable)
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const body = await request.json();
   const parsed = createMealSchema.safeParse(body);
   if (!parsed.success) {

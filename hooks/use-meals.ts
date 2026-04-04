@@ -22,6 +22,7 @@ export function useListMeals() {
 export function useListPastMeals() {
   return useQuery<(FormattedMeal & { ingredients: { id: number; mealId: number; name: string; measurement: string | null; createdAt: string }[] })[]>({
     queryKey: ["/api/meals/past"],
+    queryFn: () => fetchJson("/api/meals/past"),
     refetchOnWindowFocus: true,
     refetchInterval: 60_000,
   });

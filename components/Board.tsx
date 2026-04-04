@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
 import { Plus, ChevronLeft, ChevronRight, CookingPot, Inbox, History, Sun, Moon } from "lucide-react";
+import { UserButton, AuthUIContext } from "@neondatabase/auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import type { FormattedMeal } from "@/lib/db/helpers";
 const MEAL_TYPE_DINNER = "dinner";
 
 export default function Board() {
+  const authContext = useContext(AuthUIContext);
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
   const [startDate, setStartDate] = useState(startOfDay(new Date()));
@@ -326,6 +328,7 @@ export default function Board() {
             <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">New Meal</span>
           </Button>
+          {authContext && <UserButton />}
         </div>
       </header>
 

@@ -6,7 +6,7 @@ import { requireUserId } from "@/lib/auth";
 type RouteContext = { params: Promise<{ id: string; ingredientId: string }> };
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const { id: idStr, ingredientId: ingredientIdStr } = await context.params;
   const id = parseInt(idStr, 10);
   const ingredientId = parseInt(ingredientIdStr, 10);

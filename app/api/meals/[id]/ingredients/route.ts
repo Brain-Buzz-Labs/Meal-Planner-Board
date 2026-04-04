@@ -17,7 +17,7 @@ function formatIngredient(i: typeof ingredientsTable.$inferSelect) {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
-  const userId = requireUserId(request);
+  const userId = await requireUserId(request);
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {

@@ -21,7 +21,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers authEnabled={!!process.env.NEON_AUTH_BASE_URL}>{children}</Providers>
       </body>
     </html>
   );
