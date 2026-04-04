@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Board from "@/components/Board";
 import { auth } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 const authConfigured =
   !!process.env.NEON_AUTH_BASE_URL && !!process.env.NEON_AUTH_COOKIE_SECRET;
 
