@@ -17,6 +17,14 @@ export default function AuthPage() {
 
     let cleanup: (() => void) | undefined;
 
+    const hideSignup = () => {
+      const links = container.querySelectorAll<HTMLAnchorElement>('a[href*="sign-up"]');
+      links.forEach((a) => {
+        const wrapper = a.closest("p, div");
+        (wrapper ?? a).setAttribute("hidden", "");
+      });
+    };
+
     const tryAttach = () => {
       const input = container.querySelector<HTMLInputElement>('input[type="password"]');
       if (!input || input.dataset.eyeToggleAttached) return false;
@@ -55,9 +63,18 @@ export default function AuthPage() {
       return true;
     };
 
-    if (tryAttach()) return () => cleanup?.();
+    hideSignup();
+    if (tryAttach()) {
+      const signupObserver = new MutationObserver(() => hideSignup());
+      signupObserver.observe(container, { childList: true, subtree: true });
+      return () => {
+        signupObserver.disconnect();
+        cleanup?.();
+      };
+    }
 
     const observer = new MutationObserver(() => {
+      hideSignup();
       if (tryAttach()) observer.disconnect();
     });
     observer.observe(container, { childList: true, subtree: true });

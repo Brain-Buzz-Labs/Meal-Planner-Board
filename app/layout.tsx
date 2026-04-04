@@ -5,7 +5,7 @@ import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Meal Planner Board",
+  title: "Our Meal Planner",
   description: "Plan your weekly dinners with a drag-and-drop board",
 };
 
