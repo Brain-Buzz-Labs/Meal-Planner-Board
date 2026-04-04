@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/server";
 
 const authConfigured =
@@ -27,8 +27,8 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
       if (session?.user?.id) {
         return resolveUserId(session.user.id);
       }
-    } catch {
-      // Fall through to header-based auth
+    } catch (err) {
+      console.error("auth.getSession() failed:", err);
     }
   }
 
@@ -46,9 +46,30 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 }
 
 /**
- * Require authentication. Returns the user ID or falls back to "default".
+ * Require authentication. Returns the user ID, or null when auth is configured
+ * and no valid session resolves. Only falls back to "default" in local dev
+ * where Neon Auth is not configured.
  */
-export async function requireUserId(request: NextRequest): Promise<string> {
+export async function requireUserId(request: NextRequest): Promise<string | null> {
   const userId = await getUserId(request);
-  return userId ?? "default";
+  if (userId) return userId;
+  if (!authConfigured) return "default";
+  return null;
+}
+
+/**
+ * Convenience helper for API routes. Returns either the resolved user ID
+ * string, or a 401 NextResponse that the caller should return directly.
+ *
+ * Usage:
+ *   const auth = await requireUserIdOrRespond(request);
+ *   if (auth instanceof NextResponse) return auth;
+ *   const userId = auth;
+ */
+export async function requireUserIdOrRespond(
+  request: NextRequest
+): Promise<string | NextResponse> {
+  const userId = await requireUserId(request);
+  if (userId) return userId;
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }

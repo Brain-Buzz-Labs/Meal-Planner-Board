@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and, lt } from "drizzle-orm";
 import { db, mealsTable, ingredientsTable } from "@/lib/db";
-import { requireUserId } from "@/lib/auth";
+import { requireUserIdOrRespond } from "@/lib/auth";
 import { formatMeal } from "@/lib/db/helpers";
 
 export async function GET(request: NextRequest) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const today = new Date().toISOString().split("T")[0];
 
   const pastMeals = await db

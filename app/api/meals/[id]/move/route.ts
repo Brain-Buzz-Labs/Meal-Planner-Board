@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { db, mealsTable } from "@/lib/db";
-import { requireUserId } from "@/lib/auth";
+import { requireUserIdOrRespond } from "@/lib/auth";
 import { moveMealSchema } from "@/lib/validations";
 import { formatMeal, reindexSlot, reindexSlotWithInsert } from "@/lib/db/helpers";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {

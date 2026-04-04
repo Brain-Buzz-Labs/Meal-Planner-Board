@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { db, mealsTable, ingredientsTable } from "@/lib/db";
-import { requireUserId } from "@/lib/auth";
+import { requireUserIdOrRespond } from "@/lib/auth";
 import { createIngredientSchema } from "@/lib/validations";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -17,7 +17,9 @@ function formatIngredient(i: typeof ingredientsTable.$inferSelect) {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const { id: idStr } = await context.params;
   const id = parseInt(idStr, 10);
   if (isNaN(id)) {

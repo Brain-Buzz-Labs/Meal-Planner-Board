@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, mealsTable } from "@/lib/db";
-import { requireUserId } from "@/lib/auth";
+import { requireUserIdOrRespond } from "@/lib/auth";
 import { createMealSchema } from "@/lib/validations";
 import { formatMeal, getNextPosition } from "@/lib/db/helpers";
 import type { MealType } from "@/lib/db/schema";
 
 export async function GET(request: NextRequest) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const meals = await db
     .select()
     .from(mealsTable)
@@ -17,7 +19,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const userId = await requireUserId(request);
+  const auth = await requireUserIdOrRespond(request);
+  if (auth instanceof NextResponse) return auth;
+  const userId = auth;
   const body = await request.json();
   const parsed = createMealSchema.safeParse(body);
   if (!parsed.success) {
