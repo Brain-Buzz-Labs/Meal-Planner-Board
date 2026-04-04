@@ -294,45 +294,49 @@ export default function Board() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/20">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between shadow-sm gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <CookingPot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Meal Planner</h1>
-        </div>
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-3 sm:px-6 py-3 sm:py-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-between sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 sm:order-1">
+            <CookingPot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Meal Planner</h1>
+          </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm min-w-0">
-          <Button variant="ghost" size="icon" onClick={() => setStartDate(subDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
-          <span className="font-semibold text-xs sm:text-sm px-1 sm:px-3 text-center whitespace-nowrap truncate min-w-0">
-            {format(startDate, "MMM d")} - {format(addDays(startDate, 6), "MMM d")}
-          </span>
-          <Button variant="ghost" size="icon" onClick={() => setStartDate(addDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setStartDate(startOfDay(new Date()))}
-            className="ml-1 rounded-lg font-medium border-border/50 hidden md:flex text-xs"
-          >
-            Today
-          </Button>
-        </div>
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0 ml-auto sm:ml-0 sm:order-3">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-8 w-8 sm:h-9 sm:w-9">
+              {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/70" />}
+            </Button>
+            <Button
+              onClick={() => openAddDialog()}
+              size="sm"
+              className="rounded-xl font-medium bg-foreground text-background hover:bg-foreground/90 shadow-md transition-transform active:scale-95 text-xs sm:text-sm px-2 sm:px-4"
+            >
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Meal</span>
+            </Button>
+            {authContext && <UserButton />}
+          </div>
 
-        <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-8 w-8 sm:h-9 sm:w-9">
-            {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/70" />}
-          </Button>
-          <Button
-            onClick={() => openAddDialog()}
-            size="sm"
-            className="rounded-xl font-medium bg-foreground text-background hover:bg-foreground/90 shadow-md transition-transform active:scale-95 text-xs sm:text-sm px-2 sm:px-4"
-          >
-            <Plus className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">New Meal</span>
-          </Button>
-          {authContext && <UserButton />}
+          <div className="w-full flex justify-center order-last sm:w-auto sm:order-2 sm:flex-1 sm:justify-center sm:min-w-0">
+            <div className="flex items-center gap-1 sm:gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm min-w-0 max-w-full">
+              <Button variant="ghost" size="icon" onClick={() => setStartDate(subDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+              <span className="font-semibold text-xs sm:text-sm px-1 sm:px-3 text-center whitespace-nowrap truncate min-w-0">
+                {format(startDate, "MMM d")} - {format(addDays(startDate, 6), "MMM d")}
+              </span>
+              <Button variant="ghost" size="icon" onClick={() => setStartDate(addDays(startDate, 7))} className="rounded-lg h-8 w-8 sm:h-9 sm:w-9">
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStartDate(startOfDay(new Date()))}
+                className="ml-1 rounded-lg font-medium border-border/50 hidden md:flex text-xs"
+              >
+                Today
+              </Button>
+            </div>
+          </div>
         </div>
       </header>
 
