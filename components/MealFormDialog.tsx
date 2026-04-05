@@ -12,6 +12,7 @@ import { CalendarIcon, X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateMeal, useUpdateMeal } from "@/hooks/use-meals";
 import { createIngredientDirect } from "@/hooks/use-ingredients";
+import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import type { FormattedMeal } from "@/lib/db/helpers";
 
@@ -38,6 +39,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
   const [newIngMeasurement, setNewIngMeasurement] = useState("");
   const [isSavingIngredients, setIsSavingIngredients] = useState(false);
 
+  const queryClient = useQueryClient();
   const createMutation = useCreateMeal();
   const updateMutation = useUpdateMeal();
 
@@ -102,6 +104,7 @@ export function MealFormDialog({ isOpen, onClose, initialData, defaultDate, defa
                 )
               );
               setIsSavingIngredients(false);
+              queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
             }
             onClose();
           },

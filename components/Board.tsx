@@ -33,6 +33,9 @@ import { MealFormDialog } from "@/components/MealFormDialog";
 import { IngredientModal } from "@/components/IngredientModal";
 import { RecipeCard } from "@/components/RecipeCard";
 import { DroppableSlot } from "@/components/DroppableSlot";
+import { IngredientList } from "@/components/IngredientList";
+import { useWeeklyIngredients } from "@/hooks/use-ingredients";
+import { aggregateIngredients } from "@/lib/aggregate-ingredients";
 import type { FormattedMeal } from "@/lib/db/helpers";
 
 const MEAL_TYPE_DINNER = "dinner";
@@ -67,6 +70,11 @@ export default function Board() {
     }
     return Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
   }, [serverDays, startDate]);
+
+  const weekStart = useMemo(() => format(days[0] ?? startDate, "yyyy-MM-dd"), [days, startDate]);
+  const weekEnd = useMemo(() => format(days[6] ?? addDays(startDate, 6), "yyyy-MM-dd"), [days, startDate]);
+  const { data: weeklyIngredients = [], isLoading: ingredientsLoading } = useWeeklyIngredients(weekStart, weekEnd);
+  const aggregatedIngredients = useMemo(() => aggregateIngredients(weeklyIngredients), [weeklyIngredients]);
 
   const openAddDialog = (date?: Date) => {
     setEditingMeal(null);
@@ -271,6 +279,7 @@ export default function Board() {
         onSuccess: async () => {
           await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
           await queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+          await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
           setOptimisticMeals(null);
         },
         onError: () => {
@@ -405,7 +414,7 @@ export default function Board() {
             </div>
           </div>
 
-          <div className="bg-secondary/30 border-t border-border/50 p-3 sm:p-6 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)]">
+          <div className="bg-secondary/30 border-t border-border/50 p-3 sm:p-6 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)] min-h-[50vh]">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 sm:gap-6">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -470,6 +479,8 @@ export default function Board() {
                   </DroppableSlot>
                 </SortableContext>
               </div>
+
+              <IngredientList ingredients={aggregatedIngredients} isLoading={ingredientsLoading} />
             </div>
           </div>
 

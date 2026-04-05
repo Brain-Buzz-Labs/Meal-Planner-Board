@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { WeeklyIngredient } from "@/lib/aggregate-ingredients";
 
 export interface FormattedIngredient {
   id: number;
@@ -27,6 +28,13 @@ export function useListIngredients(mealId: number, enabled: boolean) {
   });
 }
 
+export function useWeeklyIngredients(startDate: string, endDate: string) {
+  return useQuery<WeeklyIngredient[]>({
+    queryKey: ["/api/ingredients/weekly", startDate, endDate],
+    queryFn: () => fetchJson(`/api/ingredients/weekly?startDate=${startDate}&endDate=${endDate}`),
+  });
+}
+
 export function useCreateIngredient(mealId: number) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -38,6 +46,7 @@ export function useCreateIngredient(mealId: number) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals", mealId, "ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
 }
@@ -51,6 +60,7 @@ export function useDeleteIngredient(mealId: number) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals", mealId, "ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
 }

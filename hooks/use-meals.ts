@@ -53,6 +53,7 @@ export function useCreateMeal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
 }
@@ -69,6 +70,7 @@ export function useUpdateMeal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
 }
@@ -81,6 +83,7 @@ export function useDeleteMeal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
 }
