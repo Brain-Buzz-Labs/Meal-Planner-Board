@@ -21,6 +21,11 @@ export const moveMealSchema = z.object({
   position: z.number().int().min(0),
 });
 
+export const copyMealSchema = z.object({
+  scheduledDate: z.string().nullable().optional(),
+  mealType: z.enum(["breakfast", "lunch", "dinner"]).nullable().optional(),
+});
+
 export const createIngredientSchema = z.object({
   name: z.string().min(1),
   measurement: z.string().nullable().optional(),

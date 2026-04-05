@@ -25,15 +25,6 @@ export function useListMeals() {
   });
 }
 
-export function useListPastMeals() {
-  return useQuery<(FormattedMeal & { ingredients: { id: number; mealId: number; name: string; measurement: string | null; createdAt: string }[] })[]>({
-    queryKey: ["/api/meals/past"],
-    queryFn: () => fetchJson("/api/meals/past"),
-    refetchOnWindowFocus: true,
-    refetchInterval: 60_000,
-  });
-}
-
 export function useListDays(startDate: string, count: number) {
   return useQuery<{ date: string; dayOfWeek: string; isToday: boolean }[]>({
     queryKey: ["/api/days", startDate, count],
@@ -52,7 +43,6 @@ export function useCreateMeal() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
@@ -69,7 +59,6 @@ export function useUpdateMeal() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
@@ -82,7 +71,6 @@ export function useDeleteMeal() {
       fetchJson<void>(`/api/meals/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
     },
   });
@@ -96,5 +84,21 @@ export function useMoveMeal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
+  });
+}
+
+export function useCopyMeal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { scheduledDate: string | null; mealType: string | null } }) =>
+      fetchJson<FormattedMeal>(`/api/meals/${id}/copy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
+    },
   });
 }

@@ -16,9 +16,10 @@ interface MealCardProps {
   meal: FormattedMeal;
   onEdit: (meal: FormattedMeal) => void;
   onView?: (meal: FormattedMeal) => void;
+  dragIdPrefix?: string;
 }
 
-export function MealCard({ meal, onEdit, onView }: MealCardProps) {
+export function MealCard({ meal, onEdit, onView, dragIdPrefix = "meal-" }: MealCardProps) {
   const deleteMutation = useDeleteMeal();
 
   const {
@@ -29,7 +30,7 @@ export function MealCard({ meal, onEdit, onView }: MealCardProps) {
     transition,
     isDragging,
   } = useSortable({
-    id: `meal-${meal.id}`,
+    id: `${dragIdPrefix}${meal.id}`,
     data: {
       type: "Meal",
       meal,

@@ -21,17 +21,16 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { format, addDays, startOfDay, isSameDay, subDays } from "date-fns";
-import { Plus, ChevronLeft, ChevronRight, CookingPot, Inbox, History, Sun, Moon } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, CookingPot, BookOpen, Sun, Moon } from "lucide-react";
 import { UserButton, AuthUIContext } from "@neondatabase/auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/use-theme";
-import { useListMeals, useListPastMeals, useListDays, useMoveMeal, useCreateMeal } from "@/hooks/use-meals";
+import { useListMeals, useListDays, useMoveMeal, useCopyMeal, useDeleteMeal } from "@/hooks/use-meals";
 import { MealCard } from "@/components/MealCard";
 import { MealFormDialog } from "@/components/MealFormDialog";
 import { IngredientModal } from "@/components/IngredientModal";
-import { RecipeCard } from "@/components/RecipeCard";
 import { DroppableSlot } from "@/components/DroppableSlot";
 import { IngredientList } from "@/components/IngredientList";
 import { useWeeklyIngredients } from "@/hooks/use-ingredients";
@@ -55,9 +54,9 @@ export default function Board() {
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
 
   const { data: serverMeals = [], isLoading } = useListMeals();
-  const { data: pastMeals = [] } = useListPastMeals();
   const moveMutation = useMoveMeal();
-  const createMutation = useCreateMeal();
+  const copyMutation = useCopyMeal();
+  const deleteMutation = useDeleteMeal();
 
   const [optimisticMeals, setOptimisticMeals] = useState<FormattedMeal[] | null>(null);
   const displayMeals = optimisticMeals || serverMeals;
@@ -111,36 +110,36 @@ export default function Board() {
       .sort((a, b) => a.position - b.position);
   };
 
-  const unscheduledMeals = displayMeals
-    .filter((m) => !m.scheduledDate)
-    .sort((a, b) => a.position - b.position);
-
-  const resolveTarget = (overId: string): { targetContainerId: string; newPosition: number } | null => {
-    const isOverContainer = overId.includes("::") || overId === "unscheduled" || overId === "previous-meals";
-    if (isOverContainer) {
-      const targetContainerId = overId;
-      let newPosition = 0;
-      if (targetContainerId === "unscheduled") {
-        newPosition = unscheduledMeals.length;
-      } else if (targetContainerId === "previous-meals") {
-        return null;
-      } else {
-        const [dateStr] = targetContainerId.split("::");
-        newPosition = getMealsForSlot(dateStr).length;
+  const libraryMeals = useMemo(() => {
+    const byName = new Map<string, FormattedMeal>();
+    for (const meal of displayMeals) {
+      const key = meal.name.trim().toLowerCase();
+      const existing = byName.get(key);
+      if (!existing) {
+        byName.set(key, meal);
+        continue;
       }
-      return { targetContainerId, newPosition };
+      // Prefer the template (scheduledDate = null); otherwise the lowest id.
+      const existingIsTemplate = existing.scheduledDate === null;
+      const candidateIsTemplate = meal.scheduledDate === null;
+      if (candidateIsTemplate && !existingIsTemplate) {
+        byName.set(key, meal);
+      } else if (candidateIsTemplate === existingIsTemplate && meal.id < existing.id) {
+        byName.set(key, meal);
+      }
     }
+    return Array.from(byName.values()).sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
+  }, [displayMeals]);
 
-    if (overId.startsWith("recipe-")) {
-      return { targetContainerId: "previous-meals", newPosition: 0 };
+  const resolveDayTarget = (overId: string): { targetContainerId: string; newPosition: number } | null => {
+    if (overId.includes("::")) {
+      const [dateStr] = overId.split("::");
+      return { targetContainerId: overId, newPosition: getMealsForSlot(dateStr).length };
     }
-
     const overMeal = displayMeals.find((m) => `meal-${m.id}` === overId);
-    if (overMeal) {
-      if (!overMeal.scheduledDate) {
-        const overIndex = unscheduledMeals.findIndex((m) => m.id === overMeal.id);
-        return { targetContainerId: "unscheduled", newPosition: Math.max(0, overIndex) };
-      }
+    if (overMeal && overMeal.scheduledDate) {
       const targetContainerId = `${overMeal.scheduledDate}::${MEAL_TYPE_DINNER}`;
       const slotMeals = getMealsForSlot(overMeal.scheduledDate);
       const overIndex = slotMeals.findIndex((m) => m.id === overMeal.id);
@@ -149,8 +148,7 @@ export default function Board() {
     return null;
   };
 
-  const parseTarget = (targetContainerId: string) => {
-    if (targetContainerId === "unscheduled") return { newDate: null as string | null, newType: null as string | null };
+  const parseDayTarget = (targetContainerId: string) => {
     const [d] = targetContainerId.split("::");
     return { newDate: d, newType: MEAL_TYPE_DINNER as string };
   };
@@ -158,17 +156,18 @@ export default function Board() {
   const onDragStart = (event: DragStartEvent) => {
     const activeId = event.active.id as string;
 
+    if (activeId.startsWith("library-")) {
+      const libraryId = parseInt(activeId.replace("library-", ""), 10);
+      const meal = libraryMeals.find((m) => m.id === libraryId);
+      if (meal) setActiveMeal(meal);
+      return;
+    }
+
     if (activeId.startsWith("meal-")) {
       const meal = displayMeals.find((m) => `meal-${m.id}` === activeId);
       if (meal) {
         setActiveMeal(meal);
         if (!optimisticMeals) setOptimisticMeals(serverMeals);
-      }
-    } else if (activeId.startsWith("recipe-")) {
-      const recipeId = parseInt(activeId.replace("recipe-", ""), 10);
-      const recipe = pastMeals.find((m) => m.id === recipeId);
-      if (recipe) {
-        setActiveMeal(recipe);
       }
     }
   };
@@ -186,60 +185,105 @@ export default function Board() {
 
     const activeId = active.id as string;
     const overId = over.id as string;
-    const isRecipeDrag = activeId.startsWith("recipe-");
+    const isOverLibrary = overId === "library" || overId.startsWith("library-");
 
-    if (isRecipeDrag) {
-      const recipeId = parseInt(activeId.replace("recipe-", ""), 10);
-      const recipe = pastMeals.find((m) => m.id === recipeId);
-      if (!recipe) return;
+    // Library drag → copy to day (or no-op if dropped back on library)
+    if (activeId.startsWith("library-")) {
+      if (isOverLibrary) return;
 
-      if (overId === "previous-meals" || overId.startsWith("recipe-")) return;
+      const libraryId = parseInt(activeId.replace("library-", ""), 10);
+      const source = libraryMeals.find((m) => m.id === libraryId);
+      if (!source) return;
 
-      const target = resolveTarget(overId);
+      const target = resolveDayTarget(overId);
       if (!target) return;
-      const { newDate, newType } = parseTarget(target.targetContainerId);
+      const { newDate, newType } = parseDayTarget(target.targetContainerId);
 
-      createMutation.mutate(
+      copyMutation.mutate(
+        { id: source.id, data: { scheduledDate: newDate, mealType: newType } },
         {
-          name: recipe.name,
-          description: recipe.description ?? undefined,
-          scheduledDate: newDate,
-          mealType: newType,
-        },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
-            toast.success(`Scheduled "${recipe.name}"`);
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+            await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
+            toast.success(`Added "${source.name}" to ${format(new Date(newDate + "T00:00:00"), "EEE, MMM d")}`);
           },
           onError: () => {
-            toast.error("Couldn't schedule recipe - please try again");
+            toast.error("Couldn't add meal - please try again");
           },
         }
       );
       return;
     }
 
+    // Day card drag
     const activeMealObj = displayMeals.find((m) => `meal-${m.id}` === activeId);
     if (!activeMealObj) {
       setOptimisticMeals(null);
       return;
     }
 
-    const target = resolveTarget(overId);
+    // Day → Meals library: remove the scheduled copy from the week.
+    // If this is the last row for this meal name, unschedule instead of deleting
+    // so the meal stays in the library.
+    if (isOverLibrary) {
+      const nameKey = activeMealObj.name.trim().toLowerCase();
+      const sameNameCount = displayMeals.filter(
+        (m) => m.name.trim().toLowerCase() === nameKey
+      ).length;
+      const isLastInstance = sameNameCount <= 1;
+
+      if (isLastInstance) {
+        setOptimisticMeals(
+          displayMeals.map((m) =>
+            m.id === activeMealObj.id
+              ? { ...m, scheduledDate: null, mealType: null, position: 0 }
+              : m
+          )
+        );
+        moveMutation.mutate(
+          {
+            id: activeMealObj.id,
+            data: { scheduledDate: null, mealType: null, position: 0 },
+          },
+          {
+            onSuccess: async () => {
+              await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+              await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
+              setOptimisticMeals(null);
+            },
+            onError: () => {
+              setOptimisticMeals(null);
+              toast.error("Couldn't remove meal from week - please try again");
+            },
+          }
+        );
+      } else {
+        setOptimisticMeals(displayMeals.filter((m) => m.id !== activeMealObj.id));
+        deleteMutation.mutate(activeMealObj.id, {
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
+            await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
+            setOptimisticMeals(null);
+          },
+          onError: () => {
+            setOptimisticMeals(null);
+            toast.error("Couldn't remove meal - please try again");
+          },
+        });
+      }
+      return;
+    }
+
+    // Day → day: move
+    const target = resolveDayTarget(overId);
     if (!target) {
       setOptimisticMeals(null);
       return;
     }
 
-    let { targetContainerId, newPosition } = target;
-    if (targetContainerId === "previous-meals") {
-      targetContainerId = "unscheduled";
-      newPosition = unscheduledMeals.length;
-    }
-    const { newDate, newType } = parseTarget(targetContainerId);
+    const { targetContainerId, newPosition } = target;
+    const { newDate, newType } = parseDayTarget(targetContainerId);
 
-    // Optimistic update
     const newMeals = [...displayMeals];
     const mealIndex = newMeals.findIndex((m) => m.id === activeMealObj.id);
     if (mealIndex >= 0) newMeals.splice(mealIndex, 1);
@@ -278,7 +322,6 @@ export default function Board() {
       {
         onSuccess: async () => {
           await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
-          await queryClient.invalidateQueries({ queryKey: ["/api/meals/past"] });
           await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
           setOptimisticMeals(null);
         },
@@ -418,63 +461,31 @@ export default function Board() {
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 sm:gap-6">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <Inbox className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                  <h3 className="font-semibold text-sm sm:text-base text-foreground">Unscheduled Ideas</h3>
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                  <h3 className="font-semibold text-sm sm:text-base text-foreground">Meals</h3>
                   <span className="bg-background px-2 py-0.5 rounded-full text-xs font-bold text-muted-foreground border border-border">
-                    {unscheduledMeals.length}
+                    {libraryMeals.length}
                   </span>
                 </div>
 
                 <SortableContext
-                  id="unscheduled"
-                  items={unscheduledMeals.map((m) => `meal-${m.id}`)}
+                  id="library"
+                  items={libraryMeals.map((m) => `library-${m.id}`)}
                   strategy={horizontalListSortingStrategy}
                 >
-                  <DroppableSlot id="unscheduled">
+                  <DroppableSlot id="library">
                     <div className="flex flex-wrap gap-2 sm:gap-3 min-h-[50px]">
-                      {unscheduledMeals.length === 0 && (
+                      {libraryMeals.length === 0 && (
                         <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-3">
-                          <p className="text-xs sm:text-sm font-medium">No loose ideas right now.</p>
-                          <p className="text-[10px] sm:text-xs mt-1">Create a new meal without a date to save it here.</p>
+                          <p className="text-xs sm:text-sm font-medium">No meals yet.</p>
+                          <p className="text-[10px] sm:text-xs mt-1">Create a meal to add it to your library, then drag it to a day.</p>
                         </div>
                       )}
-                      {unscheduledMeals.map((meal) => (
+                      {libraryMeals.map((meal) => (
                         <div key={meal.id} className="w-full sm:w-[260px]">
-                          <MealCard meal={meal} onEdit={openEditDialog} onView={openViewDialog} />
+                          <MealCard meal={meal} onEdit={openEditDialog} onView={openViewDialog} dragIdPrefix="library-" />
                         </div>
                       ))}
-                    </div>
-                  </DroppableSlot>
-                </SortableContext>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <History className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                  <h3 className="font-semibold text-sm sm:text-base text-foreground">Previously Made</h3>
-                  <span className="bg-background px-2 py-0.5 rounded-full text-xs font-bold text-muted-foreground border border-border">
-                    {pastMeals.length}
-                  </span>
-                </div>
-                <SortableContext
-                  id="previous-meals"
-                  items={pastMeals.map((m) => `recipe-${m.id}`)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  <DroppableSlot id="previous-meals">
-                    <div className="flex flex-wrap gap-2 sm:gap-3 min-h-[50px]">
-                      {pastMeals.length === 0 ? (
-                        <div className="w-full flex flex-col items-center justify-center text-muted-foreground/50 py-3">
-                          <p className="text-xs sm:text-sm font-medium">No past recipes yet.</p>
-                          <p className="text-[10px] sm:text-xs mt-1">Meals from previous days will show up here.</p>
-                        </div>
-                      ) : (
-                        pastMeals.map((meal) => (
-                          <div key={meal.id} className="w-full sm:w-[260px]">
-                            <RecipeCard meal={meal} onView={openViewDialog} />
-                          </div>
-                        ))
-                      )}
                     </div>
                   </DroppableSlot>
                 </SortableContext>
