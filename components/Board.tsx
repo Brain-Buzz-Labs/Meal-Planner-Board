@@ -205,7 +205,6 @@ export default function Board() {
           onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["/api/meals"] });
             await queryClient.invalidateQueries({ queryKey: ["/api/ingredients/weekly"] });
-            toast.success(`Added "${source.name}" to ${format(new Date(newDate + "T00:00:00"), "EEE, MMM d")}`);
           },
           onError: () => {
             toast.error("Couldn't add meal - please try again");
