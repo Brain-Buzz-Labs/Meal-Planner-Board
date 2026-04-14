@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { createRoot } from "react-dom/client";
-import { Eye, EyeOff } from "lucide-react";
+import { CookingPot, Eye, EyeOff } from "lucide-react";
 import { AuthView } from "@neondatabase/auth/react";
 
 export default function AuthPage() {
@@ -87,8 +87,12 @@ export default function AuthPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6"
+      className="min-h-screen flex flex-col items-center justify-center bg-background p-4 sm:p-6"
     >
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
+        <CookingPot className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Meal Planner</h1>
+      </div>
       <AuthView pathname={pathname ?? "/auth/sign-in"} />
     </div>
   );
